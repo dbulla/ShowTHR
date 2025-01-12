@@ -4,13 +4,13 @@ target/
 !**/src/test/**/target/
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+.idea/
+.idea/encodings.xml
+.idea/codeStyles/codeStyleConfig.xml
 *.iws
 *.iml
 *.ipr
+.kotlin
 
 ### Eclipse ###
 .apt_generated
@@ -36,3 +36,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/.idea/
