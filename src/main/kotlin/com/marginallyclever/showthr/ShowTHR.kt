@@ -98,6 +98,7 @@ object ShowTHR {
 
         // default output name to input name and png
         outputFilename = inputFilename.replace("thr", "png")
+//        outputFilename = inputFilename.replace("thr", "JPEG")// only png seems to work...
 
         var index = 1
         while (index < args.size) {
