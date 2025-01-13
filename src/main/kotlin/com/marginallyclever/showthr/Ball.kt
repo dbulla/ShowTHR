@@ -4,7 +4,7 @@ import javax.vecmath.Vector2d
 
 // Ball class for handling ball movement and position
 internal class Ball(val radius: Double) {
-    internal var position = Vector2d(0.0, 0.0)
+    internal var position = Vector2d(0.0, 0.0)// todo initialize from first coordinates in thr filel
     private val target = Vector2d(0.0, 0.0)
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false

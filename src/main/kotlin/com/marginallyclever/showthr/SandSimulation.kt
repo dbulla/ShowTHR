@@ -217,31 +217,37 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
             }
         }
         BufferedReader(InputStreamReader(FileInputStream(f))).use { reader ->
-            val cx = tableWidth / 2
-            val cy = tableHeight / 2
+            val centerX = tableWidth / 2
+            val centerY = tableHeight / 2
 
             val maxRadius = tableWidth / 2 - 20
 
             var j = 0
             var line: String
             val stringBuilder = StringBuilder()
+            var firstLine = true
             while ((reader.readLine().also { line = it }) != null) {
                 j++
                 line = line.trim { it <= ' ' }
                 if (line.isNotEmpty()) {
                     if (!line.startsWith("#") && !line.startsWith("//")) {
                         val percent = String.format("%.1f%% ", 100.0 * j / lines)
-//                        stringBuilder.append(percent).append(line)
-                        // read a line from the THR file - replace any multiple spaces with a single space
+                        // read a line from the THR file - then replace any multiple spaces with a single space
                         line = line.replace("  ", " ")
                         val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                         val theta = parts[0].toDouble()
                         val rho = parts[1].toDouble() * maxRadius
-                        val coords=String.format("  %.2f    %.2f", theta, rho)
+                        val coords = String.format("  %.2f    %.2f", theta, rho)
                         stringBuilder.append(percent).append(coords)
                         // convert polar to cartesian
-                        val y = cy + -cos(theta) * rho
-                        val x = cx + sin(theta) * rho
+                        val y = centerY + -cos(theta) * rho
+                        val x = centerX + sin(theta) * rho
+                        // if this is the first line in the file, then set the ball to that position, instead of it defaulting to 0,0
+                        if (firstLine) {
+                            ball.position.x = x
+                            ball.position.y = y
+                            firstLine = false
+                        }
                         // set the target
                         setTarget(x, y)
                         // wait for the ball to reach the target

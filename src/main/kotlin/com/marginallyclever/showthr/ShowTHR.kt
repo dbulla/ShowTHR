@@ -24,8 +24,8 @@ import javax.imageio.ImageIO
 object ShowTHR {
     private lateinit var inputFilename: String
     private lateinit var outputFilename: String
-    private var h = Toolkit.getDefaultToolkit().screenSize.height
-    private var w = h
+    private var height = Toolkit.getDefaultToolkit().screenSize.height
+    private var width = height // circular table
     private var ballSize: Double = 5.0
     private var initialDepth: Double = 2.0
     private lateinit var ext: String
@@ -44,7 +44,7 @@ object ShowTHR {
         // get start time
         val start = Instant.now()
 
-        val sandSimulation = SandSimulation(w, h, ballSize, initialDepth)
+        val sandSimulation = SandSimulation(width, height, ballSize, initialDepth)
         try {
             sandSimulation.processFile(inputFilename)
         } catch (e: IOException) {
@@ -78,8 +78,8 @@ object ShowTHR {
     private fun printSettings() {
         println("inputFilename=$inputFilename")
         println("outputFilename=$outputFilename")
-        println("w=$w")
-        println("h=$h")
+        println("w=$width")
+        println("h=$height")
         println("ballSize=$ballSize")
         println("initialDepth=$initialDepth")
     }
@@ -117,7 +117,7 @@ object ShowTHR {
                         println("Missing value for -w")
                         return true
                     }
-                    w = args[index].trim { it <= ' ' }.toInt()
+                    width = args[index].trim { it <= ' ' }.toInt()
                 }
 
                 "-h" -> {
@@ -126,7 +126,7 @@ object ShowTHR {
                         println("Missing value for -h")
                         return true
                     }
-                    h = args[index].trim { it <= ' ' }.toInt()
+                    height = args[index].trim { it <= ' ' }.toInt()
                 }
 
                 "-b" -> {
