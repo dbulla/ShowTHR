@@ -207,16 +207,16 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
      */
     @Throws(IOException::class)
     fun processFile(filename: String) {
-        val f = File(filename)
+        val file = File(filename)
 
         // count lines in file f for progress report
         var lines = 0
-        BufferedReader(InputStreamReader(FileInputStream(f))).use { reader ->
+        BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
             while (reader.readLine() != null) {
                 lines++
             }
         }
-        BufferedReader(InputStreamReader(FileInputStream(f))).use { reader ->
+        BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
             val centerX = tableWidth / 2
             val centerY = tableHeight / 2
 
@@ -224,6 +224,7 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
 
             var j = 0
             var line: String
+            val shortFilename=file.name
             val stringBuilder = StringBuilder()
             var firstLine = true
             while ((reader.readLine().also { line = it }) != null) {
@@ -238,7 +239,7 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
                         val theta = parts[0].toDouble()
                         val rho = parts[1].toDouble() * maxRadius
                         val coords = String.format("  %.2f    %.2f", theta, rho)
-                        stringBuilder.append(percent).append(coords)
+                        stringBuilder.append(shortFilename).append(" ").append(percent).append(coords)
                         // convert polar to cartesian
                         val y = centerY + -cos(theta) * rho
                         val x = centerX + sin(theta) * rho
