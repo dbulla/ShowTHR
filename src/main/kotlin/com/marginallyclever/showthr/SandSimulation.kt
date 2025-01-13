@@ -242,7 +242,9 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
                         // convert polar to cartesian
                         val y = centerY + -cos(theta) * rho
                         val x = centerX + sin(theta) * rho
-                        // if this is the first line in the file, then set the ball to that position, instead of it defaulting to 0,0
+
+                        // if this is the first line in the file, then set the ball to that position,
+                        // instead of it defaulting to 0,0
                         if (firstLine) {
                             ball.position.x = x
                             ball.position.y = y
