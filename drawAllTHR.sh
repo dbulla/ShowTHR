@@ -6,12 +6,11 @@ directory="$1"
 extension=".thr"
 
 # Command to execute on each file
-command="./gradlew  run --args="
 command="java -jar ./build/libs/ShowTHR-0.0.1-SNAPSHOT-all.jar "
 
 #set -x
 
-./gradlew shadowJar
+./gradlew clean shadowJar
 
 # Loop through all files with the specified extension
 for file in "$directory"/*"$extension"; do
