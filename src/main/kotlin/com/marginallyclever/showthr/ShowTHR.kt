@@ -46,7 +46,7 @@ object ShowTHR {
 
         val sandSimulation = SandSimulation(width, height, ballSize, initialDepth)
         try {
-            sandSimulation.processFile(inputFilename)
+            sandSimulation.processFileNew(inputFilename)
         } catch (e: IOException) {
             println("Error reading file " + inputFilename + ": " + e.message)
         }
@@ -97,7 +97,7 @@ object ShowTHR {
         inputFilename = args[0]
 
         // default output name to input name and png
-        outputFilename = inputFilename.replace("thr", "png")
+        outputFilename = inputFilename.replace(".thr", ".png")
 //        outputFilename = inputFilename.replace("thr", "JPEG")// only png seems to work...
 
         var index = 1
@@ -155,7 +155,8 @@ object ShowTHR {
             }
             index++
         }
-        ext = outputFilename.substring(outputFilename.lastIndexOf('.') + 1)
+        ext = outputFilename.substringAfterLast('.')
+
         return false
     }
 

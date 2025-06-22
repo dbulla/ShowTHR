@@ -8,10 +8,10 @@
 
 plugins {
     application
-    id("com.github.ben-manes.versions") version "0.51.0"
-    id("com.dorongold.task-tree") version "4.0.0"
+    id("com.github.ben-manes.versions") version "0.52.0"
+    id("com.dorongold.task-tree") version "4.0.1"
     id( "com.github.johnrengelman.shadow") version "8.1.1"
-    kotlin("jvm") version "2.0.20"
+    kotlin("jvm") version "2.2.0-RC3"
 }
 
 repositories {
@@ -32,7 +32,7 @@ dependencies {
     implementation("me.saharnooby:qoi-java:1.2.1")
     implementation("org.sejda.imageio:webp-imageio:0.1.6")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.1")
 }
 
 application {
@@ -53,5 +53,5 @@ kotlin {
 //    // Or shorter:
 //    jvmToolchain(<MAJOR_JDK_VERSION>)
     // For example:
-    jvmToolchain(21)
+//    jvmToolchain(21)
 }

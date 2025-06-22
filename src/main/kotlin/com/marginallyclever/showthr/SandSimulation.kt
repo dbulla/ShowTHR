@@ -10,9 +10,11 @@ import kotlin.math.*
  */
 @Suppress("PrivatePropertyName")
 class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, ballRadius: Double, initialSandDepth: Double) {
+
     private val MAX_SLOPE = 1.0 // Threshold for sand redistribution
     private val REDISTRIBUTION_RATE = 0.5 // Amount of sand transferred per step
     private val RELAX_MARGIN = 4.0 // must be at greater than 1.
+    private val PROGRESS_THRESHOLD = 5
 
     private val sandGrid = Array(tableWidth) { DoubleArray(tableHeight) } // 2D array for sand density
     private val ball = Ball(ballRadius)
@@ -206,64 +208,99 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
      * @throws IOException if the file cannot be read
      */
     @Throws(IOException::class)
-    fun processFile(filename: String) {
+    fun processFileNew(filename: String) {
         val file = File(filename)
 
-        // count lines in file f for progress report
+        val numLines = countLines(file)
+
+        var countByTens = 0
+        BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
+            val centerX = tableWidth / 2
+            val centerY = tableHeight / 2
+            val maxRadius = tableWidth / 2 - 20
+
+            var firstLine = true
+            val shortFilename = file.name
+            val stringBuilder = StringBuilder()
+
+            val regex = "\\s+".toRegex()
+
+            reader.lineSequence()
+                .mapIndexedNotNull { index, line ->
+                    line.trim().takeIf {
+                        it.isNotEmpty() &&
+                        !it.startsWith("#") &&
+                        !it.startsWith("//")
+                    }?.let {
+                        index to it
+                    }
+                }
+                .forEach { (index, line) ->
+                    val parts = line.replace(regex, " ").split(" ")
+                    val theta = parts[0].toDouble()
+                    val rho = parts[1].toDouble() * maxRadius
+
+                    val y = centerY - cos(theta) * rho
+                    val x = centerX + sin(theta) * rho
+
+                    if (firstLine) {
+                        ball.position.x = x
+                        ball.position.y = y
+                        firstLine = false
+                    }
+
+                    setTarget(x, y)
+                    while (!ballAtTarget()) {
+                        update(0.2)
+                    }
+                    countByTens = outputStatus(stringBuilder, shortFilename, index, numLines, theta, rho, countByTens)
+                }
+        }
+    }
+
+    /**
+     * Outputs the current status of the simulation to the console, including information about the file being processed
+     * and relevant computation details.
+     *
+     * Only when countByTens is 0 or is exceeded should this print.
+     */
+
+    private fun outputStatus(stringBuilder: StringBuilder, shortFilename: String, index: Int, numLines: Int, theta: Double, rho: Double, countByTens: Int): Int {
+        var newCount: Int = countByTens
+
+        val percentageComplete = 100.0 * index / numLines
+        val shouldPrint = when {
+            countByTens == 0 || percentageComplete > countByTens + PROGRESS_THRESHOLD -> {
+                newCount = countByTens + PROGRESS_THRESHOLD
+                true
+            }
+
+            else                                                                      -> false
+        }
+
+        if (shouldPrint) {
+            val percent = String.format("%.0f%% ", percentageComplete)
+
+            stringBuilder.append(shortFilename)
+                .append("    ")
+                .append(percent)
+                .append(String.format("  %.2f    %.2f", theta, rho))
+            val dots = stringBuilder.toString()
+            if (dots.isNotEmpty()) println(dots)
+            stringBuilder.clear()
+        }
+        return newCount
+    }
+
+    private fun countLines(file: File): Int {
         var lines = 0
         BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
             while (reader.readLine() != null) {
                 lines++
             }
         }
-        BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
-            val centerX = tableWidth / 2
-            val centerY = tableHeight / 2
-
-            val maxRadius = tableWidth / 2 - 20
-
-            var j = 0
-            var line: String
-            val shortFilename=file.name
-            val stringBuilder = StringBuilder()
-            var firstLine = true
-            while ((reader.readLine().also { line = it }) != null) {
-                j++
-                line = line.trim { it <= ' ' }
-                if (line.isNotEmpty()) {
-                    if (!line.startsWith("#") && !line.startsWith("//")) {
-                        val percent = String.format("%.1f%% ", 100.0 * j / lines)
-                        // read a line from the THR file - then replace any multiple spaces with a single space
-                        line = line.replace("  ", " ")
-                        val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                        val theta = parts[0].toDouble()
-                        val rho = parts[1].toDouble() * maxRadius
-                        val coords = String.format("  %.2f    %.2f", theta, rho)
-                        stringBuilder.append(shortFilename).append(" ").append(percent).append(coords)
-                        // convert polar to cartesian
-                        val y = centerY + -cos(theta) * rho
-                        val x = centerX + sin(theta) * rho
-
-                        // if this is the first line in the file, then set the ball to that position,
-                        // instead of it defaulting to 0,0
-                        if (firstLine) {
-                            ball.position.x = x
-                            ball.position.y = y
-                            firstLine = false
-                        }
-                        // set the target
-                        setTarget(x, y)
-                        // wait for the ball to reach the target
-                        while (!ballAtTarget()) {
-                            update(0.2)
-                            //                            stringBuilder.append('.')
-                        }
-                        val dots = stringBuilder.toString()
-                        if (dots.isNotEmpty()) println(dots)
-                        stringBuilder.clear()
-                    }
-                }
-            }
-        }
+        return lines
     }
+
 }
+

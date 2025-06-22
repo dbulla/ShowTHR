@@ -64,7 +64,7 @@ class SandSimulationTest {
         val h = 1000
         val sandSimulation = SandSimulation(w, h, 5.0, 2.0)
 
-        sandSimulation.processFile("src/test/resources/Vaporeon with Waves.thr")
+        sandSimulation.processFileNew("src/test/resources/Vaporeon with Waves.thr")
 
         val image = sandSimulation.renderSandImage()
         // save the image to disk
