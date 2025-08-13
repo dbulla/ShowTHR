@@ -227,11 +227,8 @@ class SandSimulation(private val tableWidth: Int, private val tableHeight: Int, 
 
             reader.lineSequence()
                 .mapIndexedNotNull { index, line ->
-                    line.trim().takeIf {
-                        it.isNotEmpty() &&
-                        !it.startsWith("#") &&
-                        !it.startsWith("//")
-                    }?.let {
+                    line.trim()
+                        .takeIf { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }?.let {
                         index to it
                     }
                 }

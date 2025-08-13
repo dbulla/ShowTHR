@@ -7,7 +7,7 @@ directory="$1"
 extension=".thr"
 
 # Command to execute on each file
-command="java -jar ./build/libs/ShowTHR-0.0.1-SNAPSHOT-all.jar "
+command="java -jar ./build/libs/ShowTHR-0.0.1-SNAPSHOT-all.jar"
 
 #set -x
 
