@@ -18,9 +18,9 @@ for file in "$directory"/*"$extension"; do
     # Check if the file is a regular file
     if [ -f "$file" ]; then
         # Execute the command on the file
-        $command "$file"
+        $command "$file" -q
         # display the image when it's done
-        open "${file/.thr/.png}"
+#        open "${file/.thr/.png}"
         echo
         echo
         echo

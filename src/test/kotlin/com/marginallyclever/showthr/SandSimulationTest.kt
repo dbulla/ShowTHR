@@ -11,7 +11,7 @@ class SandSimulationTest {
     @Test
     @Throws(IOException::class)
     fun testSandSimulation() {
-        val sandSimulation = SandSimulation(300, 300, 5.0, 2.0)
+        val sandSimulation = SandSimulation(300, 300, 5.0, 2.0, backgroundImageName)
         val image = sandSimulation.renderSandImage()
         // save the image to disk
         val file = File("sand_simulation.png")
@@ -24,7 +24,7 @@ class SandSimulationTest {
     fun testSandSimulationSpiral() {
         val w = 300
         val h = 300
-        val sandSimulation = SandSimulation(w, h, 5.0, 2.0)
+        val sandSimulation = SandSimulation(w, h, 5.0, 2.0, backgroundImageName)
         sandSimulation.setTarget(100.0, 100.0)
         var d = (w - 40) / 2.0
         var a = 0.0
@@ -62,7 +62,7 @@ class SandSimulationTest {
         // table size
         val w = 1000
         val h = 1000
-        val sandSimulation = SandSimulation(w, h, 5.0, 2.0)
+        val sandSimulation = SandSimulation(w, h, 5.0, 2.0, backgroundImageName)
 
         sandSimulation.processFileNew("src/test/resources/Vaporeon with Waves.thr")
 
