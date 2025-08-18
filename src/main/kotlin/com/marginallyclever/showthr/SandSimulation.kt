@@ -31,11 +31,7 @@ class SandSimulation(val tableWidth: Int, val tableHeight: Int, ballRadius: Doub
         ball.position = (Vector2d(tableWidth / 2.0, tableHeight / 2.0))
 
         // Initialize sand grid to uniform density
-        (0..<tableWidth).forEach { i ->
-            (0..<tableHeight).forEach { j ->
-                sandGrid[i][j] = initialSandDepth // some sand in every square
-            }
-        }
+        initializeSandGrid(initialSandDepth)
         val backgroundImageFile = File(backgroundImageName)
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
@@ -47,6 +43,14 @@ class SandSimulation(val tableWidth: Int, val tableHeight: Int, ballRadius: Doub
         imagePanel.updateImage(bufferedImage)
 
         frame.isVisible = true
+    }
+
+    private fun initializeSandGrid(initialSandDepth: Double) {
+        (0..<tableWidth).forEach { i ->
+            (0..<tableHeight).forEach { j ->
+                sandGrid[i][j] = initialSandDepth // some sand in every square
+            }
+        }
     }
 
     private fun readInCleanedImage(cleanFile: File): BufferedImage {

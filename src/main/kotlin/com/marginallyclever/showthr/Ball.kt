@@ -37,6 +37,5 @@ internal class Ball(val radius: Double) {
             position.add(direction)
             atTarget = false
         }
-        //        println("updatePosition pos: $position, target: $target,        diff: ${position.x - target.x}, ${position.y - target.y}")
     }
 }

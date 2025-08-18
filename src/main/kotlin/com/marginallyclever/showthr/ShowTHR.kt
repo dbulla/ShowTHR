@@ -29,8 +29,8 @@ import kotlin.time.ExperimentalTime
  * The THR file is a text file that describes the motion of a ball across a table of sand.  The output file is an
  * image of the sand table after the ball has moved.
  *
- * THR format is a text file with one command per line.  Each command is "theta rho", where theta is an angle in
- * radians and rho is a value from 0...1.  lines that are blank or begin with # can be safely ignored.
+ * The THR format is a text file with one command per line.  Each command is "theta rho", where theta is an angle in
+ * radians and rho is a value from 0...1.  Lines that are blank or begin with # can be safely ignored.
  *
  * The simulation attempts to push some sand away from the ball and then
  */
@@ -45,12 +45,11 @@ object ShowTHR {
     private var isGenerateCleanBackdrop = false
     private var isReversed = false
     private var shouldQuitWhenDone = false
-    private var backgroundImageName = "clean.png"
+    private var backgroundImageName = ""
     private const val PROGRESS_THRESHOLD = 4.0
     private var shouldExpandSequences = true
     private const val NUMBER_OF_TURNS_TO_CLEAN = 200
     private var imageSkipCount = 4
-    private var IMAGE_COUNT_WHEN_CLEANING = 200
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -96,60 +95,50 @@ object ShowTHR {
         if (args.isEmpty()) {
             return false
         }
-        // very special case - we want to generate a "clean" track image with the user's screen size to use as a screen backdrop in future images.
-        // Therefore, we don't need a file name, etc.
-        if (args[0].trim() == "-c") {
-            inputFilename = "clean.thr"
-            outputFilename = "clean.png"
-            isGenerateCleanBackdrop = true
-            imageSkipCount = IMAGE_COUNT_WHEN_CLEANING
+        try {
+            var index = 0
+            while (index < args.size) {
+                when (args[index]) {
+                    "-b"    -> backgroundImageName = setValueFromArg(++index, args)
+                    "-c"    -> isGenerateCleanBackdrop = true
+                    "-d"    -> initialDepth = setValueFromArg(++index, args).toDouble()
+                    "-e"    -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                    "-i"    -> inputFilename = args[++index]
+                    "-skip" -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                    "-o"    -> outputFilename = setValueFromArg(++index, args)
+                    "-q"    -> shouldQuitWhenDone = true
+                    "-r"    -> isReversed = true
+                    "-s"    -> ballSize = setValueFromArg(++index, args).toDouble()
+                    "-h"    -> height = setValueFromArg(++index, args).toInt()
+                    "-w"    -> width = setValueFromArg(++index, args).toInt()
+                    else    -> {
+                        println("Unknown option " + args[index])
+                        return false
+                    }
+                }
+                index++
+            }
+        } catch (e: Exception) {
+            println("Problem parsing arguments ${e.message}")
+            return false
+        }
+        //        }
+        if (isGenerateCleanBackdrop) {
+            inputFilename = "clean.thr"  // should figure out a better way to noop this
+            backgroundImageName = "clean_${width}x$height.png"
+            outputFilename = backgroundImageName
+            imageSkipCount = 1000
+            shouldQuitWhenDone = true
         }
         else {
-            inputFilename = args[0]
-
-            try {
-                var index = 1
-                while (index < args.size) {
-                    when (args[index]) {
-                        "-b" -> backgroundImageName = setValueFromArg(++index, args)
-                        "-c" -> isGenerateCleanBackdrop = true
-                        "-d" -> initialDepth = setValueFromArg(++index, args).toDouble()
-                        "-e" -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                        "-h" -> height = setValueFromArg(++index, args).toInt()
-                        "-i" -> imageSkipCount = setValueFromArg(++index, args).toInt()
-                        "-o" -> outputFilename = setValueFromArg(++index, args)
-                        "-q" -> shouldQuitWhenDone = true
-                        "-r" -> isReversed = true
-                        "-s" -> ballSize = setValueFromArg(++index, args).toDouble()
-                        "-w" -> width = setValueFromArg(++index, args).toInt()
-                        else -> {
-                            println("Unknown option " + args[index])
-                            return false
-                        }
-                    }
-                    index++
-                }
-            } catch (e: Exception) {
-                println("Problem parsing arguments ${e.message}")
-                return false
-            }
+            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
+            if (isReversed) outputFilename = outputFilename.replace(".png", "_reversed.png")
+            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${width}x$height.png"
         }
+
         // default output name to input name and png
-        outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
-        if (isReversed) outputFilename = outputFilename.replace(".png", "_reversed.png")
         ext = outputFilename.substringAfterLast('.')
         return true
-    }
-
-    private fun setValueFromArg(index: Int, args: Array<String>): String {
-        if (index < args.size) {
-            return args[index].trim { it <= ' ' }
-        }
-        else {
-            println("Missing value for ${args[index - 1]}")
-            throw IllegalArgumentException("Missing value for ${args[index - 1]}")
-        }
-
     }
 
 
@@ -193,6 +182,7 @@ object ShowTHR {
         val firstTheta = expandedSequence.first().first
         val firstRho = expandedSequence.first().second
         sandSimulation.setTarget(centerX + sin(firstTheta) * firstRho, centerY - cos(firstTheta) * firstRho)
+
         expandedSequence.forEachIndexed { index, it ->
             val theta = it.first
             val rho = it.second * maxRadius
@@ -295,13 +285,22 @@ object ShowTHR {
         else return sequence.toMutableList()
     }
 
+    private fun setValueFromArg(index: Int, args: Array<String>): String {
+        if (index < args.size) {
+            return args[index].trim { it <= ' ' }
+        }
+        else {
+            println("Missing value for ${args[index - 1]}")
+            throw IllegalArgumentException("Missing value for ${args[index - 1]}")
+        }
+    }
+
     /**
      * Outputs the current status of the simulation to the console, including information about the file being processed
      * and relevant computation details.
      *
      * Only when countByTens is 0 or is exceeded should this print.
      */
-
     @OptIn(ExperimentalTime::class)
     private fun outputStatus(
         stringBuilder: StringBuilder,
@@ -355,7 +354,7 @@ Optional:
     -e shouldExpandSequences    If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
     -h height                   Set the image height.  Default is screen height.
     -h width                    Set the image width.  Default is screen width.
-    -i imageCount               How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
+    -skip imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
     -o outputFilename           If present, the output file will be written to this file
     -q                          No args, if present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
     -r                          No args, if present, the .thr file will be read in reversed order.
@@ -384,7 +383,7 @@ Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()
         println("s - ballSize = $ballSize")
         println("h - height = $height")
         println("w - width = $width")
-        println("i - imageCount = $imageSkipCount")
+        println("skip imageSkipCount = $imageSkipCount")
         println("d - initialDepth = $initialDepth")
         println("r - isReversed = $isReversed")
         println("o - outputFilename = $outputFilename")
