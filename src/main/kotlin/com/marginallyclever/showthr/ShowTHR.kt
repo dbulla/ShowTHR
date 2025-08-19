@@ -1,6 +1,5 @@
 package com.marginallyclever.showthr
 
-import java.awt.Toolkit
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -35,21 +34,8 @@ import kotlin.time.ExperimentalTime
  * The simulation attempts to push some sand away from the ball and then
  */
 object ShowTHR {
-    private lateinit var inputFilename: String
-    private lateinit var outputFilename: String
-    private var height = Toolkit.getDefaultToolkit().screenSize.height
-    private var width = height // circular table
-    private var ballSize: Double = 5.0
-    private var initialDepth: Double = 2.0
-    private lateinit var ext: String
-    private var isGenerateCleanBackdrop = false
-    private var isReversed = false
-    private var shouldQuitWhenDone = false
-    private var backgroundImageName = ""
-    private const val PROGRESS_THRESHOLD = 4.0
-    private var shouldExpandSequences = true
-    private const val NUMBER_OF_TURNS_TO_CLEAN = 200
-    private var imageSkipCount = 4
+
+    private val settings = Settings()
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -60,24 +46,24 @@ object ShowTHR {
             // get start time
             val start = Instant.now()
 
-            val sandSimulation = SandSimulation(width, height, ballSize, initialDepth, backgroundImageName)
+            val sandSimulation = SandSimulation(settings)
             try {
-                processThrFile(inputFilename, sandSimulation)
+                processThrFile(settings.inputFilename, sandSimulation)
             } catch (e: IOException) {
-                println("Error reading file " + inputFilename + ": " + e.message)
+                println("Error reading file " + settings.inputFilename + ": " + e.message)
             }
 
             try { // save the image to disk
-                val file = File(outputFilename)
-                ImageIO.write(sandSimulation.bufferedImage, ext, file)
+                val file = File(settings.outputFilename)
+                ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
                 println("Image saved to " + file.absolutePath)
             } catch (e: IOException) {
-                println("Error saving file " + outputFilename + ": " + e.message)
+                println("Error saving file " + settings.outputFilename + ": " + e.message)
             }
             // get end time
             val end = Instant.now()
             println("Done!  Time taken: " + Duration.between(start, end).seconds + " s")
-            if (shouldQuitWhenDone) exitProcess(0)
+            if (settings.shouldQuitWhenDone) exitProcess(0)
         }
         else {
             showHelp()
@@ -99,18 +85,18 @@ object ShowTHR {
             var index = 0
             while (index < args.size) {
                 when (args[index]) {
-                    "-b"    -> backgroundImageName = setValueFromArg(++index, args)
-                    "-c"    -> isGenerateCleanBackdrop = true
-                    "-d"    -> initialDepth = setValueFromArg(++index, args).toDouble()
-                    "-e"    -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                    "-i"    -> inputFilename = args[++index]
-                    "-skip" -> imageSkipCount = setValueFromArg(++index, args).toInt()
-                    "-o"    -> outputFilename = setValueFromArg(++index, args)
-                    "-q"    -> shouldQuitWhenDone = true
-                    "-r"    -> isReversed = true
-                    "-s"    -> ballSize = setValueFromArg(++index, args).toDouble()
-                    "-h"    -> height = setValueFromArg(++index, args).toInt()
-                    "-w"    -> width = setValueFromArg(++index, args).toInt()
+                    "-b"    -> settings.backgroundImageName = setValueFromArg(++index, args)
+                    "-c"    -> settings.isGenerateCleanBackdrop = true
+                    "-d"    -> settings.initialSandDepth = setValueFromArg(++index, args).toDouble()
+                    "-e"    -> settings.shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                    "-i"    -> settings.inputFilename = args[++index]
+                    "-skip" -> settings.imageSkipCount = setValueFromArg(++index, args).toInt()
+                    "-o"    -> settings.outputFilename = setValueFromArg(++index, args)
+                    "-q"    -> settings.shouldQuitWhenDone = true
+                    "-r"    -> settings.isReversed = true
+                    "-s"    -> settings.ballRadius = setValueFromArg(++index, args).toDouble()
+                    "-h"    -> settings.height = setValueFromArg(++index, args).toInt()
+                    "-w"    -> settings.width = setValueFromArg(++index, args).toInt()
                     else    -> {
                         println("Unknown option " + args[index])
                         return false
@@ -123,21 +109,21 @@ object ShowTHR {
             return false
         }
         //        }
-        if (isGenerateCleanBackdrop) {
-            inputFilename = "clean.thr"  // should figure out a better way to noop this
-            backgroundImageName = "clean_${width}x$height.png"
-            outputFilename = backgroundImageName
-            imageSkipCount = 1000
-            shouldQuitWhenDone = true
+        if (settings.isGenerateCleanBackdrop) {
+            settings.inputFilename = "clean.thr"  // should figure out a better way to noop this
+            settings.backgroundImageName = "clean_${settings.width}x$settings.height.png"
+            settings.outputFilename = settings.backgroundImageName
+            settings.imageSkipCount = 1000
+            settings.shouldQuitWhenDone = true
         }
         else {
-            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
-            if (isReversed) outputFilename = outputFilename.replace(".png", "_reversed.png")
-            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${width}x$height.png"
+            settings.outputFilename = settings.inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
+            if (settings.isReversed) settings.outputFilename = settings.outputFilename.replace(".png", "_reversed.png")
+            if (settings.backgroundImageName.trim().isEmpty()) settings.backgroundImageName = "clean_${settings.width}x${settings.height}.png"
         }
 
         // default output name to input name and png
-        ext = outputFilename.substringAfterLast('.')
+        settings.ext = settings.outputFilename.substringAfterLast('.')
         return true
     }
 
@@ -153,9 +139,9 @@ object ShowTHR {
     fun processThrFile(filename: String, sandSimulation: SandSimulation) {
         val file = File(filename)
 
-        val centerX = sandSimulation.tableWidth / 2
-        val centerY = sandSimulation.tableHeight / 2
-        val maxRadius = sandSimulation.tableWidth / 2 - 20
+        val centerX = settings.width / 2
+        val centerY = settings.height / 2
+        val maxRadius = settings.width / 2 - 20
 
         var firstLine = true
         val shortFilename = file.name
@@ -165,20 +151,23 @@ object ShowTHR {
         var previousPercentage = 0.0
         val startTime = Clock.System.now()
 
-        val lines: MutableList<String> = when {
-            isGenerateCleanBackdrop -> addCleaning()
-            else                    -> {
+        val trackLines: MutableList<String> = when {
+            settings.isGenerateCleanBackdrop -> createCleaningTrack()
+            else                             -> {
                 BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
                     val lineSequence = reader.lineSequence().toMutableList()
+                    if (lineSequence.isEmpty()) exitProcess(0)
                     lineSequence
                 }
             }
         }
-        var sequence: MutableList<Pair<Double, Double>> = parseSequence(lines, regex)
-        if (isReversed) sequence = sequence.reversed().toMutableList()
+        var sequence: List<Pair<Double, Double>> = parseSequence(trackLines, regex)
+        if (settings.isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
         val numLines = expandedSequence.size
+
+        // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         val firstTheta = expandedSequence.first().first
         val firstRho = expandedSequence.first().second
         sandSimulation.setTarget(centerX + sin(firstTheta) * firstRho, centerY - cos(firstTheta) * firstRho)
@@ -201,7 +190,7 @@ object ShowTHR {
                 sandSimulation.update(0.2)
                 count++
             }
-            if (index % imageSkipCount == 0) {
+            if (index % settings.imageSkipCount == 0) {
                 sandSimulation.renderSandImage()
             }
             previousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
@@ -210,20 +199,27 @@ object ShowTHR {
 
     private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
         val sequence: MutableList<Pair<Double, Double>> =
+
             lines.map { it.trim() }
-                .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//") }
+                .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//")  || it.startsWith("theta") }
                 .map {
                     val parts = it.replace(regex, " ").split(" ")
-                    val theta = parts[0].toDouble()
-                    val rho = parts[1].toDouble()
-                    Pair(theta, rho)
+                    try {
+                        val theta = parts[0].toDouble()
+                        val rho = parts[1].toDouble()
+                        Pair(theta, rho)
+                    } catch (e: Exception) {
+                        println("Error parsing sequence: ${e.message}: theta=${parts[0]}, rho=${parts[1]}")
+                        throw e
+                    }
                 }
                 .toMutableList()
+
         return sequence
     }
 
     // if desired, add a "clean" before the main track
-    fun addCleaning(): MutableList<String> {
+    fun createCleaningTrack(): MutableList<String> {
         //        if (true) {
         //            val targetTheta = sequence[0].first
         //            val targetRho = sequence[0].second
@@ -241,8 +237,8 @@ object ShowTHR {
         //            return sequence
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
-        cleaningTrack.add("${NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
-        cleaningTrack.add("${(NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0")
+        cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
+        cleaningTrack.add("${(settings.NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0")
 
         return cleaningTrack
     }
@@ -252,7 +248,7 @@ object ShowTHR {
      * the curve that it should be.  So, for any case where theta changes but rho does not, we need to expand the sequence with many intermediate points to fake the curve.
      */
     private fun expandSequence(sequence: List<Pair<Double, Double>>): MutableList<Pair<Double, Double>> {
-        if (shouldExpandSequences) {
+        if (settings.shouldExpandSequences) {
             val newSequence = mutableListOf<Pair<Double, Double>>()
             for (i in 0..<sequence.size - 1) {
                 val (theta1, rho1) = sequence[i]
@@ -312,9 +308,9 @@ object ShowTHR {
     ): Double {
         val percentageComplete = 100.0 * index / numLines
         val shouldPrint = when {
-            previousPercentageThreshold == 0.0                                    -> true
-            percentageComplete > previousPercentageThreshold + PROGRESS_THRESHOLD -> true
-            else                                                                  -> false
+            previousPercentageThreshold == 0.0                                             -> true
+            percentageComplete > previousPercentageThreshold + settings.PROGRESS_THRESHOLD -> true
+            else                                                                           -> false
         }
 
         if (shouldPrint) {
@@ -336,7 +332,7 @@ object ShowTHR {
 
             if (dots.isNotEmpty()) println(dots)
             stringBuilder.clear()
-            return previousPercentageThreshold + PROGRESS_THRESHOLD
+            return previousPercentageThreshold + settings.PROGRESS_THRESHOLD
         }
         else
             return previousPercentageThreshold
@@ -369,8 +365,8 @@ Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()
 
     // verify the file extension is supported by ImageIO
     private fun isOutputFileIsSupported(): Boolean {
-        if (!ImageIO.getImageWritersByFormatName(ext).hasNext()) {
-            println("Unsupported file format $ext")
+        if (!ImageIO.getImageWritersByFormatName(settings.ext).hasNext()) {
+            println("Unsupported file format $settings.ext")
             return false
         }
         return true
@@ -378,17 +374,18 @@ Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()
 
     // print the settings
     private fun printSettings() {
-        println("inputFilename = $inputFilename")
-        println("b - backgroundImageName = $backgroundImageName")
-        println("s - ballSize = $ballSize")
-        println("h - height = $height")
-        println("w - width = $width")
-        println("skip imageSkipCount = $imageSkipCount")
-        println("d - initialDepth = $initialDepth")
-        println("r - isReversed = $isReversed")
-        println("o - outputFilename = $outputFilename")
-        println("e - shouldExpandSequences = $shouldExpandSequences")
-        println("q - shouldQuitWhenDone = $shouldQuitWhenDone")
+        println("inputFilename = ${settings.inputFilename}")
+        println("b - backgroundImageName = ${settings.backgroundImageName}")
+        println("s - ballSize = ${settings.ballRadius}")
+        println("h - height = ${settings.height}")
+        println("w - width = ${settings.width}")
+        println("skip imageSkipCount = ${settings.imageSkipCount}")
+        println("d - initialDepth = ${settings.initialSandDepth}")
+        println("r - isReversed = ${settings.isReversed}")
+        println("o - outputFilename = ${settings.outputFilename}")
+        println("e - shouldExpandSequences = ${settings.shouldExpandSequences}")
+        println("q - shouldQuitWhenDone = ${settings.shouldQuitWhenDone}")
+        println("ext = ${settings.ext}")
 
     }
 }
