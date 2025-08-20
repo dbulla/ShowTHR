@@ -1,6 +1,21 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Settings.Companion.MAX_SLOPE
+import com.marginallyclever.showthr.Settings.Companion.REDISTRIBUTION_RATE
+import com.marginallyclever.showthr.Settings.Companion.RELAX_MARGIN
+import com.marginallyclever.showthr.Settings.Companion.backgroundImageName
+import com.marginallyclever.showthr.Settings.Companion.ballRadius
+import com.marginallyclever.showthr.Settings.Companion.blueConversion
+import com.marginallyclever.showthr.Settings.Companion.greenConversion
+import com.marginallyclever.showthr.Settings.Companion.height
+import com.marginallyclever.showthr.Settings.Companion.initialSandDepth
+import com.marginallyclever.showthr.Settings.Companion.redConversion
+import com.marginallyclever.showthr.Settings.Companion.useGreyBackground
+import com.marginallyclever.showthr.Settings.Companion.width
 import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Color.DARK_GRAY
+import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.image.BufferedImage
@@ -8,6 +23,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.vecmath.Vector2d
 import kotlin.math.cos
 import kotlin.math.max
@@ -18,10 +34,10 @@ import kotlin.math.sqrt
  * A simulation of loose sand on a table and being displaced by a ball.
  */
 //class SandSimulation(val tableWidth: Int, val tableHeight: Int, ballRadius: Double, initialSandDepth: Double, backgroundImageName: String) {
-class SandSimulation(val settings: Settings) {
+class SandSimulation() {
 
-    private val sandGrid = Array(settings.width) { DoubleArray(settings.height) } // 2D array for sand density
-    private val ball = Ball(settings.ballRadius)
+    private val sandGrid = Array(width) { DoubleArray(height) } // 2D array for sand density
+    private val ball = Ball(ballRadius)
     private lateinit var startPosition: Vector2d
     private val frame = JFrame()
     private val imagePanel = ImagePanel()
@@ -29,21 +45,20 @@ class SandSimulation(val settings: Settings) {
 
     init {
 
-        ball.position = (Vector2d(settings.width / 2.0, settings.height / 2.0))
+        ball.position = (Vector2d(width / 2.0, height / 2.0))
 
         // Initialize sand grid to uniform density
-        initializeSandGrid(settings.initialSandDepth)
-        val backgroundImageFile = File(settings.backgroundImageName)
+        initializeSandGrid(initialSandDepth)
+        val backgroundImageFile = File(backgroundImageName)
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
-            else                     -> BufferedImage(settings.width, settings.height, BufferedImage.TYPE_INT_ARGB)
+            else                     -> BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
         }
         frame.layout = BorderLayout()
-        //        frame.add(imagePanel, BorderLayout.CENTER)
 
         val mainPanel = JPanel(GridBagLayout())
-        mainPanel.background = java.awt.Color.DARK_GRAY
+        mainPanel.background = DARK_GRAY
         // Add the content panel to the main panel using GridBagConstraints for centering
         val gbc = GridBagConstraints()
         gbc.gridx = 0
@@ -51,7 +66,12 @@ class SandSimulation(val settings: Settings) {
         gbc.weightx = 0.0 // Don't let it expand horizontally
         gbc.weighty = 0.0 // Don't let it expand vertically
         gbc.anchor = GridBagConstraints.CENTER
+
+        val scrollPane = JScrollPane(imagePanel)
+        scrollPane.preferredSize = Dimension(width, height)
+
         mainPanel.add(imagePanel, gbc)
+        //        mainPanel.add(scrollPane, gbc) // todo - figure out why the image turns to a postage stamp when the scroll pane is used.
         frame.add(mainPanel, BorderLayout.CENTER)
 
         imagePanel.updateImage(bufferedImage)
@@ -63,18 +83,23 @@ class SandSimulation(val settings: Settings) {
     }
 
     private fun initializeSandGrid(initialSandDepth: Double) {
-        (0..<settings.width).forEach { i ->
-            (0..<settings.height).forEach { j ->
+        (0..<width).forEach { i ->
+            (0..<height).forEach { j ->
                 sandGrid[i][j] = initialSandDepth // some sand in every square
             }
         }
     }
 
+    /*
+        int red = (rgb>>16)&0x0ff;
+        int green=(rgb>>8) &0x0ff;
+        int blue= (rgb)    &0x0ff;
+     */
     private fun readInCleanedImage(cleanFile: File): BufferedImage {
         val backgroundImage = ImageIO.read(cleanFile)
         // set the sand height to the image
-        (0..<settings.width).forEach { i ->
-            (0..<settings.height).forEach { j ->
+        (0..<width).forEach { i ->
+            (0..<height).forEach { j ->
                 val rgb = backgroundImage.getRGB(i, j)
                 val red: Int = (rgb and 0xff0000) shr 16
                 val newLevel = red.toDouble() / 30 // 30 seems to work...
@@ -112,7 +137,7 @@ class SandSimulation(val settings: Settings) {
 
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
-                if (i in 0..<settings.width && j >= 0 && j < settings.height) {
+                if (i in 0..<width && j >= 0 && j < height) {
                     val dx = i - ballX
                     val dy = j - ballY
                     if (insideTable(i + dx, j + dy)) {
@@ -142,8 +167,8 @@ class SandSimulation(val settings: Settings) {
     }
 
     private fun insideTable(x: Int, y: Int): Boolean {
-        //        return (x >= 0 && x < settings.width) && (y >= 0 && y < settings.height)
-        return (x in 0..<settings.width) && (y in 0..<settings.height)
+        //        return (x >= 0 && x < width) && (y >= 0 && y < height)
+        return (x in 0..<width) && (y in 0..<height)
     }
 
     /**
@@ -151,31 +176,33 @@ class SandSimulation(val settings: Settings) {
      */
     @Suppress("DuplicatedCode")
     private fun relaxSand() {
-
+        val ballRelaxedMargin = (ball.radius * RELAX_MARGIN).toInt()
         var startX = startPosition.x.toInt()
+        var startY = startPosition.y.toInt()
         var endX = ball.position.x.toInt()
+        var endY = ball.position.y.toInt()
+
         if (startX > endX) {
             val temp = startX
             startX = endX
             endX = temp
         }
-        startX -= (ball.radius * settings.RELAX_MARGIN).toInt()
-        endX += (ball.radius * settings.RELAX_MARGIN).toInt()
 
-        var startY = startPosition.y.toInt()
-        var endY = ball.position.y.toInt()
+        startX -= ballRelaxedMargin
+        endX += ballRelaxedMargin
+
         if (startY > endY) {
             val temp = startY
             startY = endY
             endY = temp
         }
-        startY -= (ball.radius * settings.RELAX_MARGIN).toInt()
-        endY += (ball.radius * settings.RELAX_MARGIN).toInt()
+        startY -= ballRelaxedMargin
+        endY += ballRelaxedMargin
 
         if (startX < 0) startX = 0
         if (startY < 0) startY = 0
-        if (endX >= settings.width) endX = settings.width - 1
-        if (endY >= settings.height) endY = settings.height - 1
+        if (endX >= width) endX = width - 1
+        if (endY >= height) endY = height - 1
 
         var settled: Boolean
         do {
@@ -185,29 +212,30 @@ class SandSimulation(val settings: Settings) {
             for (y in startY..<endY - 1) {
                 for (x in startX..<endX - 1) {
                     val here = sandGrid[x][y]
+                    val hereMinusSlope = here - MAX_SLOPE
                     var c = 0
 
                     // Check up, down, left, right neighbors
-                    if (insideTable(x - 1, y) && sandGrid[x - 1][y] < here - settings.MAX_SLOPE) {
+                    if (insideTable(x - 1, y) && sandGrid[x - 1][y] < hereMinusSlope) {
                         lowerNeighbors[c++] = x - 1
                         lowerNeighbors[c++] = y
                     }
-                    if (insideTable(x + 1, y) && sandGrid[x + 1][y] < here - settings.MAX_SLOPE) {
+                    if (insideTable(x + 1, y) && sandGrid[x + 1][y] < hereMinusSlope) {
                         lowerNeighbors[c++] = x + 1
                         lowerNeighbors[c++] = y
                     }
-                    if (insideTable(x, y - 1) && sandGrid[x][y - 1] < here - settings.MAX_SLOPE) {
+                    if (insideTable(x, y - 1) && sandGrid[x][y - 1] < hereMinusSlope) {
                         lowerNeighbors[c++] = x
                         lowerNeighbors[c++] = y - 1
                     }
-                    if (insideTable(x, y + 1) && sandGrid[x][y + 1] < here - settings.MAX_SLOPE) {
+                    if (insideTable(x, y + 1) && sandGrid[x][y + 1] < hereMinusSlope) {
                         lowerNeighbors[c++] = x
                         lowerNeighbors[c++] = y + 1
                     }
 
                     if (c != 0) {
                         settled = false
-                        val d = settings.REDISTRIBUTION_RATE * 2.0 / c
+                        val d = REDISTRIBUTION_RATE * 2.0 / c
 
                         var i = 0
                         while (i < c) {
@@ -230,8 +258,8 @@ class SandSimulation(val settings: Settings) {
      *
      * @return the image
      */
-    fun renderSandImage() {
-        var max = 8.5 // setting max as below makes the animation flicker - setting it to a constant 8.5 seems acceptable.
+    fun renderSandImage(): BufferedImage {
+        var max = 8.5 // setting max dynamically makes the animation flicker - setting it to a constant 8.5 seems acceptable.
         //        for (i in 0..<tableWidth) {
         //            for (j in 0..<tableHeight) {
         //                max = max(max, sandGrid[i][j])
@@ -239,18 +267,20 @@ class SandSimulation(val settings: Settings) {
         //        }
         //        println("max = ${max}")
 
-        for (i in 0..<settings.width) {
-            for (j in 0..<settings.height) {
-                val gray = (sandGrid[i][j] * 255.0 / max).toInt() // Convert density to grayscale
+        for (i in 0..<width) {
+            for (j in 0..<height) {
+                var gray = (sandGrid[i][j] * 255.0 / max).toInt() // Convert density to grayscale
+                if (gray > 255) gray = 255
                 bufferedImage.setRGB(i, j, encode32bit(gray))
             }
         }
         imagePanel.updateImage(bufferedImage)
+        return bufferedImage
     }
 
     /**
      * Encodes an 8-bit greyscale value into a 32-bit ARGB color value.
-     * The alpha channel is set to full opacity (0xFF) and the same greyscale value is applied to the red, green, and blue channels.
+     * The alpha channel is set to full opacity (0xFF), and the same greyscale value is applied to the red, green, and blue channels.
      *
      * @param greyscale the 8-bit greyscale value to encode, expected to be in the range [0, 255].
      * @return the corresponding 32-bit ARGB color value.
@@ -258,7 +288,14 @@ class SandSimulation(val settings: Settings) {
     private fun encode32bit(greyscale: Int): Int {
         var newGreyscale = greyscale
         newGreyscale = newGreyscale and 0xff
-        return (0xff shl 24) or (newGreyscale shl 16) or (newGreyscale shl 8) or newGreyscale
+        val red: Int = (newGreyscale * redConversion).toInt()
+        val green: Int = (newGreyscale * greenConversion).toInt()
+        val blue: Int = (newGreyscale * blueConversion).toInt()
+        val resultRgb = when {
+            useGreyBackground -> Color(newGreyscale, newGreyscale, newGreyscale).rgb
+            else              -> Color(red, green, blue).rgb
+        }
+        return resultRgb
     }
 }
 

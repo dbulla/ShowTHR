@@ -1,5 +1,17 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Settings.Companion.NUMBER_OF_TURNS_TO_CLEAN
+import com.marginallyclever.showthr.Settings.Companion.PROGRESS_THRESHOLD
+import com.marginallyclever.showthr.Settings.Companion.ext
+import com.marginallyclever.showthr.Settings.Companion.height
+import com.marginallyclever.showthr.Settings.Companion.imageSkipCount
+import com.marginallyclever.showthr.Settings.Companion.inputFilename
+import com.marginallyclever.showthr.Settings.Companion.isGenerateCleanBackdrop
+import com.marginallyclever.showthr.Settings.Companion.isReversed
+import com.marginallyclever.showthr.Settings.Companion.outputFilename
+import com.marginallyclever.showthr.Settings.Companion.shouldExpandSequences
+import com.marginallyclever.showthr.Settings.Companion.shouldQuitWhenDone
+import com.marginallyclever.showthr.Settings.Companion.width
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -35,97 +47,39 @@ import kotlin.time.ExperimentalTime
  */
 object ShowTHR {
 
-    private val settings = Settings()
-
     @JvmStatic
     fun main(args: Array<String>) {
         println("ShowTHR")
-        if (parseInputs(args) && isOutputFileIsSupported()) {
-            printSettings()
+        if (Settings.parseInputs(args) && Settings.isOutputFileIsSupported()) {
+            Settings.printSettings()
 
             // get start time
             val start = Instant.now()
 
-            val sandSimulation = SandSimulation(settings)
+            val sandSimulation = SandSimulation()
             try {
-                processThrFile(settings.inputFilename, sandSimulation)
+                processThrFile(inputFilename, sandSimulation)
             } catch (e: IOException) {
-                println("Error reading file " + settings.inputFilename + ": " + e.message)
+                println("Error reading file " + inputFilename + ": " + e.message)
             }
 
             try { // save the image to disk
-                val file = File(settings.outputFilename)
-                ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
+                val file = File(outputFilename)
+                ImageIO.write(sandSimulation.bufferedImage, ext, file)
                 println("Image saved to " + file.absolutePath)
             } catch (e: IOException) {
-                println("Error saving file " + settings.outputFilename + ": " + e.message)
+                println("Error saving file " + outputFilename + ": " + e.message)
             }
             // get end time
             val end = Instant.now()
             println("Done!  Time taken: " + Duration.between(start, end).seconds + " s")
-            if (settings.shouldQuitWhenDone) exitProcess(0)
+            if (shouldQuitWhenDone) exitProcess(0)
         }
         else {
             showHelp()
         }
     }
 
-
-    /**
-     * Read the command line arguments and set the inputFilename, outputFilename, w, h, ballSize, and initialDepth.
-     *
-     * @param args the command line arguments
-     * @return true if the arguments are valid
-     */
-    private fun parseInputs(args: Array<String>): Boolean {
-        if (args.isEmpty()) {
-            return false
-        }
-        try {
-            var index = 0
-            while (index < args.size) {
-                when (args[index]) {
-                    "-b"    -> settings.backgroundImageName = setValueFromArg(++index, args)
-                    "-c"    -> settings.isGenerateCleanBackdrop = true
-                    "-d"    -> settings.initialSandDepth = setValueFromArg(++index, args).toDouble()
-                    "-e"    -> settings.shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                    "-i"    -> settings.inputFilename = args[++index]
-                    "-skip" -> settings.imageSkipCount = setValueFromArg(++index, args).toInt()
-                    "-o"    -> settings.outputFilename = setValueFromArg(++index, args)
-                    "-q"    -> settings.shouldQuitWhenDone = true
-                    "-r"    -> settings.isReversed = true
-                    "-s"    -> settings.ballRadius = setValueFromArg(++index, args).toDouble()
-                    "-h"    -> settings.height = setValueFromArg(++index, args).toInt()
-                    "-w"    -> settings.width = setValueFromArg(++index, args).toInt()
-                    else    -> {
-                        println("Unknown option " + args[index])
-                        return false
-                    }
-                }
-                index++
-            }
-        } catch (e: Exception) {
-            println("Problem parsing arguments ${e.message}")
-            return false
-        }
-        //        }
-        if (settings.isGenerateCleanBackdrop) {
-            settings.inputFilename = "clean.thr"  // should figure out a better way to noop this
-            settings.backgroundImageName = "clean_${settings.width}x$settings.height.png"
-            settings.outputFilename = settings.backgroundImageName
-            settings.imageSkipCount = 1000
-            settings.shouldQuitWhenDone = true
-        }
-        else {
-            settings.outputFilename = settings.inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
-            if (settings.isReversed) settings.outputFilename = settings.outputFilename.replace(".png", "_reversed.png")
-            if (settings.backgroundImageName.trim().isEmpty()) settings.backgroundImageName = "clean_${settings.width}x${settings.height}.png"
-        }
-
-        // default output name to input name and png
-        settings.ext = settings.outputFilename.substringAfterLast('.')
-        return true
-    }
 
 
     /**
@@ -139,9 +93,9 @@ object ShowTHR {
     fun processThrFile(filename: String, sandSimulation: SandSimulation) {
         val file = File(filename)
 
-        val centerX = settings.width / 2
-        val centerY = settings.height / 2
-        val maxRadius = settings.width / 2 - 20
+        val centerX = width / 2
+        val centerY = height / 2
+        val maxRadius = width / 2 - 20
 
         var firstLine = true
         val shortFilename = file.name
@@ -152,8 +106,8 @@ object ShowTHR {
         val startTime = Clock.System.now()
 
         val trackLines: MutableList<String> = when {
-            settings.isGenerateCleanBackdrop -> createCleaningTrack()
-            else                             -> {
+            isGenerateCleanBackdrop -> createCleaningTrack()
+            else                    -> {
                 BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
                     val lineSequence = reader.lineSequence().toMutableList()
                     if (lineSequence.isEmpty()) exitProcess(0)
@@ -162,7 +116,7 @@ object ShowTHR {
             }
         }
         var sequence: List<Pair<Double, Double>> = parseSequence(trackLines, regex)
-        if (settings.isReversed) sequence = sequence.reversed().toMutableList()
+        if (isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
         val numLines = expandedSequence.size
@@ -190,7 +144,7 @@ object ShowTHR {
                 sandSimulation.update(0.2)
                 count++
             }
-            if (index % settings.imageSkipCount == 0) {
+            if (index % imageSkipCount == 0) {
                 sandSimulation.renderSandImage()
             }
             previousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
@@ -201,7 +155,7 @@ object ShowTHR {
         val sequence: MutableList<Pair<Double, Double>> =
 
             lines.map { it.trim() }
-                .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//")  || it.startsWith("theta") }
+                .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//") || it.startsWith("theta") }
                 .map {
                     val parts = it.replace(regex, " ").split(" ")
                     try {
@@ -237,8 +191,8 @@ object ShowTHR {
         //            return sequence
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
-        cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
-        cleaningTrack.add("${(settings.NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0")
+        cleaningTrack.add("${NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
+        cleaningTrack.add("${(NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
 
         return cleaningTrack
     }
@@ -248,7 +202,7 @@ object ShowTHR {
      * the curve that it should be.  So, for any case where theta changes but rho does not, we need to expand the sequence with many intermediate points to fake the curve.
      */
     private fun expandSequence(sequence: List<Pair<Double, Double>>): MutableList<Pair<Double, Double>> {
-        if (settings.shouldExpandSequences) {
+        if (shouldExpandSequences) {
             val newSequence = mutableListOf<Pair<Double, Double>>()
             for (i in 0..<sequence.size - 1) {
                 val (theta1, rho1) = sequence[i]
@@ -281,15 +235,6 @@ object ShowTHR {
         else return sequence.toMutableList()
     }
 
-    private fun setValueFromArg(index: Int, args: Array<String>): String {
-        if (index < args.size) {
-            return args[index].trim { it <= ' ' }
-        }
-        else {
-            println("Missing value for ${args[index - 1]}")
-            throw IllegalArgumentException("Missing value for ${args[index - 1]}")
-        }
-    }
 
     /**
      * Outputs the current status of the simulation to the console, including information about the file being processed
@@ -308,9 +253,9 @@ object ShowTHR {
     ): Double {
         val percentageComplete = 100.0 * index / numLines
         val shouldPrint = when {
-            previousPercentageThreshold == 0.0                                             -> true
-            percentageComplete > previousPercentageThreshold + settings.PROGRESS_THRESHOLD -> true
-            else                                                                           -> false
+            previousPercentageThreshold == 0.0                                    -> true
+            percentageComplete > previousPercentageThreshold + PROGRESS_THRESHOLD -> true
+            else                                                                  -> false
         }
 
         if (shouldPrint) {
@@ -332,11 +277,13 @@ object ShowTHR {
 
             if (dots.isNotEmpty()) println(dots)
             stringBuilder.clear()
-            return previousPercentageThreshold + settings.PROGRESS_THRESHOLD
+            return previousPercentageThreshold + PROGRESS_THRESHOLD
         }
         else
             return previousPercentageThreshold
     }
+
+
 
     private fun showHelp() {
         print(
@@ -349,7 +296,7 @@ Optional:
     -d initialDepth             Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
     -e shouldExpandSequences    If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
     -h height                   Set the image height.  Default is screen height.
-    -h width                    Set the image width.  Default is screen width.
+    -w width                    Set the image width.  Default is screen width.
     -skip imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
     -o outputFilename           If present, the output file will be written to this file
     -q                          No args, if present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
@@ -362,30 +309,4 @@ Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()
         )
     }
 
-
-    // verify the file extension is supported by ImageIO
-    private fun isOutputFileIsSupported(): Boolean {
-        if (!ImageIO.getImageWritersByFormatName(settings.ext).hasNext()) {
-            println("Unsupported file format $settings.ext")
-            return false
-        }
-        return true
-    }
-
-    // print the settings
-    private fun printSettings() {
-        println("inputFilename = ${settings.inputFilename}")
-        println("b - backgroundImageName = ${settings.backgroundImageName}")
-        println("s - ballSize = ${settings.ballRadius}")
-        println("h - height = ${settings.height}")
-        println("w - width = ${settings.width}")
-        println("skip imageSkipCount = ${settings.imageSkipCount}")
-        println("d - initialDepth = ${settings.initialSandDepth}")
-        println("r - isReversed = ${settings.isReversed}")
-        println("o - outputFilename = ${settings.outputFilename}")
-        println("e - shouldExpandSequences = ${settings.shouldExpandSequences}")
-        println("q - shouldQuitWhenDone = ${settings.shouldQuitWhenDone}")
-        println("ext = ${settings.ext}")
-
-    }
 }
