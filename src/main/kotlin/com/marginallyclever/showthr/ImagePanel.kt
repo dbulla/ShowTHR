@@ -16,7 +16,7 @@ class ImagePanel : JPanel() {
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g) // Call superclass method to clear the background
-        g.drawImage(image, 0, 0, this) // Draw the image at (0,0)
+        g.drawImage(image, 0, 0, width, height, this) // Draw the image at (0,0)
     }
 
     override fun getPreferredSize(): Dimension {

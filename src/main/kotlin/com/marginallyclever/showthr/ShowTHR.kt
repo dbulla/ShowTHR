@@ -119,6 +119,7 @@ object ShowTHR {
         if (isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
+        if(expandedSequence.isEmpty()) return
         val numLines = expandedSequence.size
 
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)

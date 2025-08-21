@@ -34,6 +34,7 @@ java {
 
 application {
     mainClass = "com.marginallyclever.showthr.ShowTHR"
+//    mainClass = "com.nurflugel.showthr.Renamer"
 //    group = "com.marginallyclever"
 //    version = "0.0.1-SNAPSHOT"
 }

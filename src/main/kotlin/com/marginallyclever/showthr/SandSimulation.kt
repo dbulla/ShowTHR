@@ -9,21 +9,14 @@ import com.marginallyclever.showthr.Settings.Companion.blueConversion
 import com.marginallyclever.showthr.Settings.Companion.greenConversion
 import com.marginallyclever.showthr.Settings.Companion.height
 import com.marginallyclever.showthr.Settings.Companion.initialSandDepth
+import com.marginallyclever.showthr.Settings.Companion.isHeadless
 import com.marginallyclever.showthr.Settings.Companion.redConversion
 import com.marginallyclever.showthr.Settings.Companion.useGreyBackground
 import com.marginallyclever.showthr.Settings.Companion.width
-import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.Color.DARK_GRAY
-import java.awt.Dimension
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-import javax.swing.JFrame
-import javax.swing.JPanel
-import javax.swing.JScrollPane
 import javax.vecmath.Vector2d
 import kotlin.math.cos
 import kotlin.math.max
@@ -39,8 +32,8 @@ class SandSimulation() {
     private val sandGrid = Array(width) { DoubleArray(height) } // 2D array for sand density
     private val ball = Ball(ballRadius)
     private lateinit var startPosition: Vector2d
-    private val frame = JFrame()
-    private val imagePanel = ImagePanel()
+    private var imageFrame: ImageFrame? = null
+
     var bufferedImage: BufferedImage
 
     init {
@@ -55,31 +48,7 @@ class SandSimulation() {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
             else                     -> BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
         }
-        frame.layout = BorderLayout()
-
-        val mainPanel = JPanel(GridBagLayout())
-        mainPanel.background = DARK_GRAY
-        // Add the content panel to the main panel using GridBagConstraints for centering
-        val gbc = GridBagConstraints()
-        gbc.gridx = 0
-        gbc.gridy = 0
-        gbc.weightx = 0.0 // Don't let it expand horizontally
-        gbc.weighty = 0.0 // Don't let it expand vertically
-        gbc.anchor = GridBagConstraints.CENTER
-
-        val scrollPane = JScrollPane(imagePanel)
-        scrollPane.preferredSize = Dimension(width, height)
-
-        mainPanel.add(imagePanel, gbc)
-        //        mainPanel.add(scrollPane, gbc) // todo - figure out why the image turns to a postage stamp when the scroll pane is used.
-        frame.add(mainPanel, BorderLayout.CENTER)
-
-        imagePanel.updateImage(bufferedImage)
-        frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        frame.pack()
-        // center the frame on the screen
-        frame.setLocationRelativeTo(null)
-        frame.isVisible = true
+        if (!isHeadless) imageFrame = ImageFrame(bufferedImage)
     }
 
     private fun initializeSandGrid(initialSandDepth: Double) {
@@ -274,7 +243,7 @@ class SandSimulation() {
                 bufferedImage.setRGB(i, j, encode32bit(gray))
             }
         }
-        imagePanel.updateImage(bufferedImage)
+        if(!isHeadless) imageFrame?.updateImage(bufferedImage)
         return bufferedImage
     }
 

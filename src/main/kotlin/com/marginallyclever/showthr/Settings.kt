@@ -21,13 +21,14 @@ class Settings {
         var imageSkipCount = 4
         lateinit var inputFilename: String
         lateinit var outputFilename: String
-        var height = Toolkit.getDefaultToolkit().screenSize.height
+        var height = Toolkit.getDefaultToolkit().screenSize.height - 100
         var width = height // circular table
         lateinit var ext: String
         var useGreyBackground = false
-        const val redConversion   =  255 / 255.0
-        const val greenConversion =  244 / 255.0
-        const val blueConversion  =  200 / 255.0
+        const val redConversion = 255 / 255.0
+        const val greenConversion = 244 / 255.0
+        const val blueConversion = 200 / 255.0
+        var isHeadless = false
 
 
         /**
@@ -44,20 +45,21 @@ class Settings {
                 var index = 0
                 while (index < args.size) {
                     when (args[index]) {
-                        "-b"    -> backgroundImageName = setValueFromArg(++index, args)
-                        "-c"    -> isGenerateCleanBackdrop = true
-                        "-d"    -> initialSandDepth = setValueFromArg(++index, args).toDouble()
-                        "-e"    -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                        "-i"    -> inputFilename = args[++index]
-                        "-g"    -> useGreyBackground = true
-                        "-skip" -> imageSkipCount = setValueFromArg(++index, args).toInt()
-                        "-o"    -> outputFilename = setValueFromArg(++index, args)
-                        "-q"    -> shouldQuitWhenDone = true
-                        "-r"    -> isReversed = true
-                        "-s"    -> ballRadius = setValueFromArg(++index, args).toDouble()
-                        "-h"    -> height = setValueFromArg(++index, args).toInt()
-                        "-w"    -> width = setValueFromArg(++index, args).toInt()
-                        else    -> {
+                        "-b"          -> backgroundImageName = setValueFromArg(++index, args)
+                        "-c"          -> isGenerateCleanBackdrop = true
+                        "-d"          -> initialSandDepth = setValueFromArg(++index, args).toDouble()
+                        "-e"          -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                        "-headless" -> isHeadless = true
+                        "-i"          -> inputFilename = args[++index]
+                        "-g"          -> useGreyBackground = true
+                        "-skip"       -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                        "-o"          -> outputFilename = setValueFromArg(++index, args)
+                        "-q"          -> shouldQuitWhenDone = true
+                        "-r"          -> isReversed = true
+                        "-s"          -> ballRadius = setValueFromArg(++index, args).toDouble()
+                        "-h"          -> height = setValueFromArg(++index, args).toInt()
+                        "-w"          -> width = setValueFromArg(++index, args).toInt()
+                        else          -> {
                             println("Unknown option " + args[index])
                             return false
                         }
@@ -68,7 +70,6 @@ class Settings {
                 println("Problem parsing arguments ${e.message}")
                 return false
             }
-            //        }
             if (isGenerateCleanBackdrop) {
                 inputFilename = "clean.thr"  // should figure out a better way to noop this
                 backgroundImageName = "clean_${width}x$height.png"
