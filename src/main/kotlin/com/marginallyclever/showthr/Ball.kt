@@ -1,34 +1,31 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.centerX
-import com.marginallyclever.showthr.Settings.Companion.centerY
-import com.marginallyclever.showthr.Settings.Companion.width
 import com.marginallyclever.showthr.Utilities.Companion.calculateX
 import com.marginallyclever.showthr.Utilities.Companion.calculateY
 import javax.vecmath.Vector2d
 
 // Ball class for handling ball movement and position
-internal class Ball(val radius: Int) {
-    internal var position = Vector2d(0.0, 0.0)
-    private val target = Vector2d(0.0, 0.0)
+internal class Ball(val name: String, val radius: Int, val settings: Settings) {
+    internal var position: Vector2d = Vector2d()
+    private var target: Vector2d = Vector2d()
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false
 
     fun setPositionThetaRho(theta: Double, rho: Double) {
-        position.x = calculateX(theta, rho )
-        position.y = calculateY(theta, rho )
+        position.x = calculateX(theta, rho, settings)
+        position.y = calculateY(theta, rho, settings)
     }
 
-//    fun setTarget(x: Double, y: Double) {
-//        target[x] = y
-//        val diff = Vector2d(target)
-//        diff.sub(position)
-//        atTarget = diff.lengthSquared() < 0.1
-//    }
+    //    fun setTarget(x: Double, y: Double) {
+    //        target[x] = y
+    //        val diff = Vector2d(target)
+    //        diff.sub(position)
+    //        atTarget = diff.lengthSquared() < 0.1
+    //    }
 
     fun setTargetThetaRho(theta: Double, rho: Double) {
-        val x = calculateX(theta, rho)
-        val y = calculateY(theta, rho)
+        val x = calculateX(theta, rho, settings)
+        val y = calculateY(theta, rho, settings)
         target[x] = y
         val diff = Vector2d(target)
         diff.sub(position)
@@ -56,5 +53,9 @@ internal class Ball(val radius: Int) {
             position.add(direction)
             atTarget = false
         }
+        //        println("$name Position: $position")
+        //        val rho= sqrt(position.x * position.x + position.y * position.y)
+        //        val theta = atan2(position.y, position.x) * 180 / Math.PI
+        //        println("$name Rho: $rho, Theta: $theta")
     }
 }

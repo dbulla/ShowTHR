@@ -1,6 +1,6 @@
 package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.setValueFromArg
+import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
 import java.io.File
 
 /** This class will rename all the files in a directory to have a number prefix.

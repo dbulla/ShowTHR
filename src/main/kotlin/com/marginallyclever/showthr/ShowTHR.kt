@@ -1,20 +1,5 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.NUMBER_OF_TURNS_TO_CLEAN
-import com.marginallyclever.showthr.Settings.Companion.PROGRESS_THRESHOLD
-import com.marginallyclever.showthr.Settings.Companion.ext
-import com.marginallyclever.showthr.Settings.Companion.height
-import com.marginallyclever.showthr.Settings.Companion.imageSkipCount
-import com.marginallyclever.showthr.Settings.Companion.inputFilename
-import com.marginallyclever.showthr.Settings.Companion.isGenerateCleanBackdrop
-import com.marginallyclever.showthr.Settings.Companion.isOutputFileIsSupported
-import com.marginallyclever.showthr.Settings.Companion.isReversed
-import com.marginallyclever.showthr.Settings.Companion.outputFilename
-import com.marginallyclever.showthr.Settings.Companion.parseInputs
-import com.marginallyclever.showthr.Settings.Companion.printSettings
-import com.marginallyclever.showthr.Settings.Companion.shouldExpandSequences
-import com.marginallyclever.showthr.Settings.Companion.shouldQuitWhenDone
-import com.marginallyclever.showthr.Settings.Companion.width
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -25,9 +10,7 @@ import java.time.Instant
 import javax.imageio.ImageIO
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.sin
 import kotlin.system.exitProcess
 import kotlin.text.trim
 import kotlin.time.Clock
@@ -49,40 +32,41 @@ import kotlin.time.ExperimentalTime
  * The simulation attempts to push some sand away from the ball and then
  */
 object ShowTHR {
+    val settings = Settings()
 
     @JvmStatic
     fun main(args: Array<String>) {
         println("ShowTHR")
-        if (parseInputs(args) && isOutputFileIsSupported()) {
-            printSettings()
+
+        if (settings.parseInputs(args) && settings.isOutputFileIsSupported()) {
+            settings.printSettings()
 
             // get start time
             val start = Instant.now()
 
-            val sandSimulation = SandSimulation()
+            val sandSimulation = SandSimulation(settings)
             try {
-                processThrFile(inputFilename, sandSimulation)
+                processThrFile(settings.inputFilename, sandSimulation)
             } catch (e: IOException) {
-                println("Error reading file " + inputFilename + ": " + e.message)
+                println("Error reading file " + settings.inputFilename + ": " + e.message)
             }
 
             try { // save the image to disk
-                val file = File(outputFilename)
-                ImageIO.write(sandSimulation.bufferedImage, ext, file)
+                val file = File(settings.outputFilename)
+                ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
                 println("Image saved to " + file.absolutePath)
             } catch (e: IOException) {
-                println("Error saving file " + outputFilename + ": " + e.message)
+                println("Error saving file " + settings.outputFilename + ": " + e.message)
             }
             // get end time
             val end = Instant.now()
             println("Done!  Time taken: " + Duration.between(start, end).seconds + " s")
-            if (shouldQuitWhenDone) exitProcess(0)
+            if (settings.shouldQuitWhenDone) exitProcess(0)
         }
         else {
             showHelp()
         }
     }
-
 
     /**
      * Read a THR file and simulate the sand displacement.
@@ -94,8 +78,6 @@ object ShowTHR {
     @Throws(IOException::class)
     fun processThrFile(filename: String, sandSimulation: SandSimulation) {
         val file = File(filename)
-
-//        val maxRadius = width / 2 - 20
         val shortFilename = file.name
         val stringBuilder = StringBuilder()
 
@@ -112,7 +94,7 @@ object ShowTHR {
         sandSimulation.setTarget(firstTheta, firstRho)
 
         expandedSequence.forEachIndexed { index, it ->
-            previousPercentage = moveToNextRhoTheta(it,  sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
+            previousPercentage = moveToNextRhoTheta(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
         }
     }
 
@@ -132,7 +114,7 @@ object ShowTHR {
         val rho = it.second
 
         if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setBallPosition(theta, rho)
+            sandSimulation.setInitialBallPosition(theta, rho)
         }
 
         sandSimulation.setTarget(theta, rho)
@@ -141,7 +123,7 @@ object ShowTHR {
             sandSimulation.update(0.2)
             count++
         }
-        if (index % imageSkipCount == 0) {
+        if (index % settings.imageSkipCount == 0) {
             sandSimulation.renderSandImage()
         }
         val newPreviousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
@@ -151,8 +133,8 @@ object ShowTHR {
     private fun extractRhoThetaPairs(file: File): MutableList<Pair<Double, Double>> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
-            isGenerateCleanBackdrop -> createCleaningTrack()
-            else                    -> {
+            settings.isGenerateCleanBackdrop -> createCleaningTrack()
+            else                             -> {
                 BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
                     val lineSequence = reader.lineSequence().toMutableList()
                     if (lineSequence.isEmpty()) exitProcess(0)
@@ -161,7 +143,7 @@ object ShowTHR {
             }
         }
         var sequence: List<Pair<Double, Double>> = parseSequence(trackLines, regex)
-        if (isReversed) sequence = sequence.reversed().toMutableList()
+        if (settings.isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
         return expandedSequence
@@ -207,8 +189,8 @@ object ShowTHR {
         //            return sequence
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
-        cleaningTrack.add("${NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
-        cleaningTrack.add("${(NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
+        cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
+        cleaningTrack.add("${(settings.NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
 
         return cleaningTrack
     }
@@ -217,8 +199,8 @@ object ShowTHR {
      * The problem is that the app will draw straight lines in x,y space between two points - and when you only have a change in theta, it draws a straight line instead of
      * the curve that it should be.  So, for any case where theta changes but rho does not, we need to expand the sequence with many intermediate points to fake the curve.
      */
-    private fun expandSequence(sequence: List<Pair<Double, Double>>): MutableList<Pair<Double, Double>> {
-        if (shouldExpandSequences) {
+    fun expandSequence(sequence: List<Pair<Double, Double>>): MutableList<Pair<Double, Double>> {
+        if (settings.shouldExpandSequences) {
             val newSequence = mutableListOf<Pair<Double, Double>>()
             for (i in 0..<sequence.size - 1) {
                 val (theta1, rho1) = sequence[i]
@@ -245,7 +227,7 @@ object ShowTHR {
                 }
                 else newSequence.add(Pair(theta1, rho1))
             }
-
+            newSequence.add(sequence.last())
             return newSequence
         }
         else return sequence.toMutableList()
@@ -269,9 +251,9 @@ object ShowTHR {
     ): Double {
         val percentageComplete = 100.0 * index / numLines
         val shouldPrint = when {
-            previousPercentageThreshold == 0.0                                    -> true
-            percentageComplete > previousPercentageThreshold + PROGRESS_THRESHOLD -> true
-            else                                                                  -> false
+            previousPercentageThreshold == 0.0                                             -> true
+            percentageComplete > previousPercentageThreshold + settings.PROGRESS_THRESHOLD -> true
+            else                                                                           -> false
         }
 
         if (shouldPrint) {
@@ -293,7 +275,7 @@ object ShowTHR {
 
             if (dots.isNotEmpty()) println(dots)
             stringBuilder.clear()
-            return previousPercentageThreshold + PROGRESS_THRESHOLD
+            return previousPercentageThreshold + settings.PROGRESS_THRESHOLD
         }
         else
             return previousPercentageThreshold

@@ -10,7 +10,7 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 
-class ImageFrame(bufferedImage: BufferedImage) : JFrame() {
+class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
 
     private val imagePanel = ImagePanel()
 
@@ -28,7 +28,7 @@ class ImageFrame(bufferedImage: BufferedImage) : JFrame() {
         gbc.anchor = GridBagConstraints.CENTER
 
         val scrollPane = JScrollPane(imagePanel)
-        scrollPane.preferredSize = Dimension(Settings.width, Settings.height)
+        scrollPane.preferredSize = Dimension(settings.width, settings.height)
 
         mainPanel.add(imagePanel, gbc)
 //                mainPanel.add(scrollPane, gbc) // todo - figure out why the image turns to a postage stamp when the frame is resized smaller

@@ -1,23 +1,30 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.centerX
-import com.marginallyclever.showthr.Settings.Companion.centerY
-import com.marginallyclever.showthr.Settings.Companion.maxRadius
-import com.marginallyclever.showthr.Settings.Companion.width
 import kotlin.math.cos
 import kotlin.math.sin
 
 class Utilities {
-    companion object    {
+    companion object {
 
-        fun calculateY(theta: Double, rho: Double): Double {
-            val newY = centerY - cos(theta) * rho * maxRadius
+        fun calculateY(theta: Double, rho: Double, settings: Settings): Double {
+            val newY = settings.centerY - cos(theta) * rho * settings.maxRadius
             return newY
         }
 
-        fun calculateX(theta: Double, rho: Double): Double {
-            val newX = centerX + sin(theta) * rho * maxRadius
+        fun calculateX(theta: Double, rho: Double, settings: Settings): Double {
+            val newX = settings.centerX + sin(theta) * rho * settings.maxRadius
             return newX
         }
+
+        fun setValueFromArg(index: Int, args: Array<String>): String {
+            if (index < args.size) {
+                return args[index].trim { it <= ' ' }
+            }
+            else {
+                println("Missing value for ${args[index - 1]}")
+                throw IllegalArgumentException("Missing value for ${args[index - 1]}")
+            }
+        }
+
     }
 }

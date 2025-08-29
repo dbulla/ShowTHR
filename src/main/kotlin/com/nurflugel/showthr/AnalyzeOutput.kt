@@ -1,6 +1,5 @@
 package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.setValueFromArg
 import org.apache.commons.io.FileUtils
 import java.io.File
 
