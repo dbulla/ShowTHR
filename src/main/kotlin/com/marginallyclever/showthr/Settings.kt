@@ -11,8 +11,9 @@ class Settings {
         const val PROGRESS_THRESHOLD = 4.0
         var shouldExpandSequences = true
         const val NUMBER_OF_TURNS_TO_CLEAN = 200
+        var useTwoBalls = false
 
-        var ballRadius: Double = 5.0
+        var ballRadius: Int = 5
         var initialSandDepth: Double = 2.0
         var isGenerateCleanBackdrop = false
         var isReversed = false
@@ -23,12 +24,15 @@ class Settings {
         lateinit var outputFilename: String
         var height = Toolkit.getDefaultToolkit().screenSize.height - 100
         var width = height // circular table
+        var centerX: Int = width / 2
+        var centerY: Int = height / 2
         lateinit var ext: String
         var useGreyBackground = false
         const val redConversion = 255 / 255.0
         const val greenConversion = 244 / 255.0
         const val blueConversion = 200 / 255.0
         var isHeadless = false
+        var maxRadius = width / 2 - 20
 
 
         /**
@@ -39,27 +43,29 @@ class Settings {
          */
         fun parseInputs(args: Array<String>): Boolean {
             if (args.isEmpty()) {
+                println("Problem parsing arguments")
                 return false
             }
             try {
                 var index = 0
                 while (index < args.size) {
                     when (args[index]) {
-                        "-b"          -> backgroundImageName = setValueFromArg(++index, args)
-                        "-c"          -> isGenerateCleanBackdrop = true
-                        "-d"          -> initialSandDepth = setValueFromArg(++index, args).toDouble()
-                        "-e"          -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                        "-headless" -> isHeadless = true
-                        "-i"          -> inputFilename = args[++index]
-                        "-g"          -> useGreyBackground = true
-                        "-skip"       -> imageSkipCount = setValueFromArg(++index, args).toInt()
-                        "-o"          -> outputFilename = setValueFromArg(++index, args)
-                        "-q"          -> shouldQuitWhenDone = true
-                        "-r"          -> isReversed = true
-                        "-s"          -> ballRadius = setValueFromArg(++index, args).toDouble()
-                        "-h"          -> height = setValueFromArg(++index, args).toInt()
-                        "-w"          -> width = setValueFromArg(++index, args).toInt()
-                        else          -> {
+                        "-b"           -> backgroundImageName = setValueFromArg(++index, args)
+                        "-useTwoBalls" -> useTwoBalls = setValueFromArg(++index, args).toBoolean()
+                        "-c"           -> isGenerateCleanBackdrop = true
+                        "-d"           -> initialSandDepth = setValueFromArg(++index, args).toDouble()
+                        "-e"           -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                        "-headless"    -> isHeadless = true
+                        "-i"           -> inputFilename = args[++index]
+                        "-g"           -> useGreyBackground = true
+                        "-skip"        -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                        "-o"           -> outputFilename = setValueFromArg(++index, args)
+                        "-q"           -> shouldQuitWhenDone = true
+                        "-r"           -> isReversed = true
+                        "-s"           -> ballRadius = setValueFromArg(++index, args).toInt()
+                        "-h"           -> height = setValueFromArg(++index, args).toInt()
+                        "-w"           -> width = setValueFromArg(++index, args).toInt()
+                        else           -> {
                             println("Unknown option " + args[index])
                             return false
                         }
@@ -82,13 +88,15 @@ class Settings {
                 if (isReversed) outputFilename = outputFilename.replace(".png", "_reversed.png")
                 if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${width}x${height}.png"
             }
-
+            centerX = width / 2
+            centerY = height / 2
+            maxRadius = width / 2 - 20
             // default output name to input name and png
             ext = outputFilename.substringAfterLast('.')
             return true
         }
 
-        private fun setValueFromArg(index: Int, args: Array<String>): String {
+        fun setValueFromArg(index: Int, args: Array<String>): String {
             if (index < args.size) {
                 return args[index].trim { it <= ' ' }
             }
@@ -112,6 +120,7 @@ class Settings {
         fun printSettings() {
             println("inputFilename = $inputFilename")
             println("b - backgroundImageName = $backgroundImageName")
+            println("useTwoBalls  = $useTwoBalls")
             println("s - ballSize = $ballRadius")
             println("h - height = $height")
             println("w - width = $width")

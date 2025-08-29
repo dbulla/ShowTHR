@@ -1,6 +1,5 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.backgroundImageName
 import com.marginallyclever.showthr.Settings.Companion.height
 import com.marginallyclever.showthr.Settings.Companion.width
 import org.junit.jupiter.api.Test
@@ -14,7 +13,7 @@ class SandSimulationTest {
     @Test
     @Throws(IOException::class)
     fun testSandSimulation() {
-        val sandSimulation = SandSimulation()
+        val sandSimulation = SandSimulation(width, height)
         val image = sandSimulation.renderSandImage()
         // save the image to disk
         val file = File("sand_simulation.png")
@@ -28,7 +27,7 @@ class SandSimulationTest {
         val settings=Settings()
         width=300
         height=300
-        val sandSimulation = SandSimulation()
+        val sandSimulation = SandSimulation(width, height)
         sandSimulation.setTarget(100.0, 100.0)
         var d = (width - 40) / 2.0
         var a = 0.0
@@ -66,7 +65,7 @@ class SandSimulationTest {
         // table size
         val w = 1000
         val h = 1000
-        val sandSimulation = SandSimulation()
+        val sandSimulation = SandSimulation(width, height)
       val showThr= ShowTHR
         showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation)
 

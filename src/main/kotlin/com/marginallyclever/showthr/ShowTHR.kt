@@ -7,8 +7,11 @@ import com.marginallyclever.showthr.Settings.Companion.height
 import com.marginallyclever.showthr.Settings.Companion.imageSkipCount
 import com.marginallyclever.showthr.Settings.Companion.inputFilename
 import com.marginallyclever.showthr.Settings.Companion.isGenerateCleanBackdrop
+import com.marginallyclever.showthr.Settings.Companion.isOutputFileIsSupported
 import com.marginallyclever.showthr.Settings.Companion.isReversed
 import com.marginallyclever.showthr.Settings.Companion.outputFilename
+import com.marginallyclever.showthr.Settings.Companion.parseInputs
+import com.marginallyclever.showthr.Settings.Companion.printSettings
 import com.marginallyclever.showthr.Settings.Companion.shouldExpandSequences
 import com.marginallyclever.showthr.Settings.Companion.shouldQuitWhenDone
 import com.marginallyclever.showthr.Settings.Companion.width
@@ -50,8 +53,8 @@ object ShowTHR {
     @JvmStatic
     fun main(args: Array<String>) {
         println("ShowTHR")
-        if (Settings.parseInputs(args) && Settings.isOutputFileIsSupported()) {
-            Settings.printSettings()
+        if (parseInputs(args) && isOutputFileIsSupported()) {
+            printSettings()
 
             // get start time
             val start = Instant.now()
@@ -81,7 +84,6 @@ object ShowTHR {
     }
 
 
-
     /**
      * Read a THR file and simulate the sand displacement.
      *
@@ -93,18 +95,61 @@ object ShowTHR {
     fun processThrFile(filename: String, sandSimulation: SandSimulation) {
         val file = File(filename)
 
-        val centerX = width / 2
-        val centerY = height / 2
-        val maxRadius = width / 2 - 20
-
-        var firstLine = true
+//        val maxRadius = width / 2 - 20
         val shortFilename = file.name
         val stringBuilder = StringBuilder()
 
-        val regex = "\\s+".toRegex()
         var previousPercentage = 0.0
         val startTime = Clock.System.now()
 
+        val expandedSequence = extractRhoThetaPairs(file)
+        if (expandedSequence.isEmpty()) return
+        val numLines = expandedSequence.size
+
+        // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
+        val firstTheta = expandedSequence.first().first
+        val firstRho = expandedSequence.first().second
+        sandSimulation.setTarget(firstTheta, firstRho)
+
+        expandedSequence.forEachIndexed { index, it ->
+            previousPercentage = moveToNextRhoTheta(it,  sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
+        }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun moveToNextRhoTheta(
+        it: Pair<Double, Double>,
+        sandSimulation: SandSimulation,
+        index: Int,
+        previousPercentage: Double,
+        stringBuilder: StringBuilder,
+        shortFilename: String,
+        numLines: Int,
+        startTime: kotlin.time.Instant,
+    ): Double {
+
+        val theta = it.first
+        val rho = it.second
+
+        if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
+            sandSimulation.setBallPosition(theta, rho)
+        }
+
+        sandSimulation.setTarget(theta, rho)
+        var count = 0
+        while (!sandSimulation.ballAtTarget()) {
+            sandSimulation.update(0.2)
+            count++
+        }
+        if (index % imageSkipCount == 0) {
+            sandSimulation.renderSandImage()
+        }
+        val newPreviousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
+        return newPreviousPercentage
+    }
+
+    private fun extractRhoThetaPairs(file: File): MutableList<Pair<Double, Double>> {
+        val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
             isGenerateCleanBackdrop -> createCleaningTrack()
             else                    -> {
@@ -119,37 +164,7 @@ object ShowTHR {
         if (isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
-        if(expandedSequence.isEmpty()) return
-        val numLines = expandedSequence.size
-
-        // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-        val firstTheta = expandedSequence.first().first
-        val firstRho = expandedSequence.first().second
-        sandSimulation.setTarget(centerX + sin(firstTheta) * firstRho, centerY - cos(firstTheta) * firstRho)
-
-        expandedSequence.forEachIndexed { index, it ->
-            val theta = it.first
-            val rho = it.second * maxRadius
-
-            val y = centerY - cos(theta) * rho
-            val x = centerX + sin(theta) * rho
-
-            if (firstLine) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-                sandSimulation.setBallPosition(x, y)
-                firstLine = false
-            }
-
-            sandSimulation.setTarget(x, y)
-            var count = 0
-            while (!sandSimulation.ballAtTarget()) {
-                sandSimulation.update(0.2)
-                count++
-            }
-            if (index % imageSkipCount == 0) {
-                sandSimulation.renderSandImage()
-            }
-            previousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
-        }
+        return expandedSequence
     }
 
     private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
@@ -283,7 +298,6 @@ object ShowTHR {
         else
             return previousPercentageThreshold
     }
-
 
 
     private fun showHelp() {

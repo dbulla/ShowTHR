@@ -6,16 +6,21 @@ import com.marginallyclever.showthr.Settings.Companion.RELAX_MARGIN
 import com.marginallyclever.showthr.Settings.Companion.backgroundImageName
 import com.marginallyclever.showthr.Settings.Companion.ballRadius
 import com.marginallyclever.showthr.Settings.Companion.blueConversion
+import com.marginallyclever.showthr.Settings.Companion.centerX
+import com.marginallyclever.showthr.Settings.Companion.centerY
 import com.marginallyclever.showthr.Settings.Companion.greenConversion
 import com.marginallyclever.showthr.Settings.Companion.height
 import com.marginallyclever.showthr.Settings.Companion.initialSandDepth
 import com.marginallyclever.showthr.Settings.Companion.isHeadless
 import com.marginallyclever.showthr.Settings.Companion.redConversion
 import com.marginallyclever.showthr.Settings.Companion.useGreyBackground
+import com.marginallyclever.showthr.Settings.Companion.useTwoBalls
 import com.marginallyclever.showthr.Settings.Companion.width
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import java.lang.Math.PI
 import javax.imageio.ImageIO
 import javax.vecmath.Vector2d
 import kotlin.math.cos
@@ -31,14 +36,20 @@ class SandSimulation() {
 
     private val sandGrid = Array(width) { DoubleArray(height) } // 2D array for sand density
     private val ball = Ball(ballRadius)
+    private val ball2 = Ball(ballRadius - 1) // optional second ball
     private lateinit var startPosition: Vector2d
+    private lateinit var startPosition2: Vector2d
     private var imageFrame: ImageFrame? = null
 
     var bufferedImage: BufferedImage
+    val ballRelaxedMargin = (ball.radius * RELAX_MARGIN).toInt()
+    val ball2RelaxedMargin = (ball2.radius * RELAX_MARGIN).toInt()
 
     init {
-
-        ball.position = (Vector2d(width / 2.0, height / 2.0))
+        ball.setPositionThetaRho(0.0, 0.0)
+        if (useTwoBalls) {
+            ball2.setPositionThetaRho(PI, 1.0)
+        }
 
         // Initialize sand grid to uniform density
         initializeSandGrid(initialSandDepth)
@@ -46,7 +57,7 @@ class SandSimulation() {
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
-            else                     -> BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+            else                     -> BufferedImage(width, height, TYPE_INT_ARGB)
         }
         if (!isHeadless) imageFrame = ImageFrame(bufferedImage)
     }
@@ -59,10 +70,13 @@ class SandSimulation() {
         }
     }
 
-    /*
-        int red = (rgb>>16)&0x0ff;
-        int green=(rgb>>8) &0x0ff;
-        int blue= (rgb)    &0x0ff;
+    /**
+    Read in a pre-generated image of a "clean" cycle as a starting point for the sand.
+
+    Just for reference...
+    int red = (rgb>>16)&0x0ff;
+    int green=(rgb>>8) &0x0ff;
+    int blue= (rgb)    &0x0ff;
      */
     private fun readInCleanedImage(cleanFile: File): BufferedImage {
         val backgroundImage = ImageIO.read(cleanFile)
@@ -78,38 +92,46 @@ class SandSimulation() {
         return backgroundImage
     }
 
-    fun setTarget(x: Double, y: Double) {
-        ball.setTarget(x, y)
+    fun setTarget(theta: Double, rho: Double) {
+        ball.setTargetThetaRho(theta, rho)
         startPosition = ball.position
+        if (useTwoBalls) {
+            ball2.setTargetThetaRho(theta + PI, 1.0 - rho)
+            startPosition2 = ball2.position
+        }
     }
 
-    fun setBallPosition(x: Double, y: Double) {
-        ball.position.x = x
-        ball.position.y = y
-    }
-
-    fun ballAtTarget(): Boolean {
-        return ball.atTarget
+    fun setBallPosition(theta: Double, rho: Double) {
+        ball.setPositionThetaRho(theta, rho)
+        if (useTwoBalls) ball2.setPositionThetaRho(theta + PI, 1.0 - rho)
     }
 
     fun update(deltaTime: Double) {
         ball.updatePosition(deltaTime)
+        if (useTwoBalls) ball2.updatePosition(deltaTime)
         makeBallPushSand()
         relaxSand() // redistribute the sand
     }
 
     private fun makeBallPushSand() {
+        makeBallPushSand(ball)
+        if (useTwoBalls) makeBallPushSand(ball2)
+    }
+
+    /**
+     * This method simulates the ball pushing the sand out of its personal space.
+     */
+    private fun makeBallPushSand(ball: Ball) {
         // Iterate over the area affected by the ball's radius
         val ballX = ball.position.x.toInt()
         val ballY = ball.position.y.toInt()
-        val radius = ball.radius.toInt()
-
+        val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
                 if (i in 0..<width && j >= 0 && j < height) {
                     val dx = i - ballX
                     val dy = j - ballY
-                    if (insideTable(i + dx, j + dy)) {
+                    if (isInsideTable(i + dx, j + dy)) {
                         // Distance from the ball's center
                         val distance = sqrt((dx * dx + dy * dy).toDouble())
                         if (distance <= radius) {
@@ -135,8 +157,7 @@ class SandSimulation() {
         }
     }
 
-    private fun insideTable(x: Int, y: Int): Boolean {
-        //        return (x >= 0 && x < width) && (y >= 0 && y < height)
+    private fun isInsideTable(x: Int, y: Int): Boolean {
         return (x in 0..<width) && (y in 0..<height)
     }
 
@@ -145,7 +166,11 @@ class SandSimulation() {
      */
     @Suppress("DuplicatedCode")
     private fun relaxSand() {
-        val ballRelaxedMargin = (ball.radius * RELAX_MARGIN).toInt()
+        relaxSand(startPosition, ball, ballRelaxedMargin)
+        if (useTwoBalls) relaxSand(startPosition2, ball2, ball2RelaxedMargin)
+    }
+
+    private fun relaxSand(startPosition: Vector2d, ball: Ball, ballRelaxedMargin: Int) {
         var startX = startPosition.x.toInt()
         var startY = startPosition.y.toInt()
         var endX = ball.position.x.toInt()
@@ -185,19 +210,19 @@ class SandSimulation() {
                     var c = 0
 
                     // Check up, down, left, right neighbors
-                    if (insideTable(x - 1, y) && sandGrid[x - 1][y] < hereMinusSlope) {
+                    if (isInsideTable(x - 1, y) && sandGrid[x - 1][y] < hereMinusSlope) {
                         lowerNeighbors[c++] = x - 1
                         lowerNeighbors[c++] = y
                     }
-                    if (insideTable(x + 1, y) && sandGrid[x + 1][y] < hereMinusSlope) {
+                    if (isInsideTable(x + 1, y) && sandGrid[x + 1][y] < hereMinusSlope) {
                         lowerNeighbors[c++] = x + 1
                         lowerNeighbors[c++] = y
                     }
-                    if (insideTable(x, y - 1) && sandGrid[x][y - 1] < hereMinusSlope) {
+                    if (isInsideTable(x, y - 1) && sandGrid[x][y - 1] < hereMinusSlope) {
                         lowerNeighbors[c++] = x
                         lowerNeighbors[c++] = y - 1
                     }
-                    if (insideTable(x, y + 1) && sandGrid[x][y + 1] < hereMinusSlope) {
+                    if (isInsideTable(x, y + 1) && sandGrid[x][y + 1] < hereMinusSlope) {
                         lowerNeighbors[c++] = x
                         lowerNeighbors[c++] = y + 1
                     }
@@ -238,12 +263,11 @@ class SandSimulation() {
 
         for (i in 0..<width) {
             for (j in 0..<height) {
-                var gray = (sandGrid[i][j] * 255.0 / max).toInt() // Convert density to grayscale
-                if (gray > 255) gray = 255
+                val gray = minOf(255, (sandGrid[i][j] * 30).toInt()) // Simplified calculation
                 bufferedImage.setRGB(i, j, encode32bit(gray))
             }
         }
-        if(!isHeadless) imageFrame?.updateImage(bufferedImage)
+        if (!isHeadless) imageFrame?.updateImage(bufferedImage)
         return bufferedImage
     }
 
@@ -266,5 +290,11 @@ class SandSimulation() {
         }
         return resultRgb
     }
+
+
+    fun ballAtTarget(): Boolean {
+        return ball.atTarget
+    }
+
 }
 
