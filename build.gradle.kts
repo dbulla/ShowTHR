@@ -4,7 +4,7 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    id( "com.gradleup.shadow") version "9.0.1"
+    id("com.gradleup.shadow") version "9.0.2"
     id("com.github.ben-manes.versions") version "0.52.0"
     id("com.dorongold.task-tree") version "4.0.1"
 }
@@ -23,6 +23,7 @@ dependencies {
     implementation("me.saharnooby:qoi-java:1.2.1")
     implementation("org.sejda.imageio:webp-imageio:0.1.6")
     implementation("com.google.guava:guava:33.4.8-jre")
+    implementation("commons-io:commons-io:2.20.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -34,6 +35,7 @@ java {
 
 application {
     mainClass = "com.marginallyclever.showthr.ShowTHR"
+//    mainClass = "com.nurflugel.showthr.Renamer"
 //    group = "com.marginallyclever"
 //    version = "0.0.1-SNAPSHOT"
 }
@@ -41,4 +43,19 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("runRenamer") {
+    group = "application"
+    description = "Runs Renamer"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass = "com.nurflugel.showthr.Renamer"
+    //    args( "/Users/douglas_bullard/dev/github/douglasBullard/sisyphus-table-pattern-maker/images4")
+}
+
+tasks.register<JavaExec>("runAnalyzeOutput") {
+    group = "application"
+    description = "Runs AnalyzeOutput"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass = "com.nurflugel.showthr.AnalyzeOutput"
 }
