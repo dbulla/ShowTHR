@@ -22,18 +22,18 @@ class Settings {
     var backgroundImageName = ""
     var imageSkipCount = 4
     lateinit var inputFilename: String
-    lateinit var outputFilename: String
-    var height = Toolkit.getDefaultToolkit().screenSize.height - 100
-    var width = height // circular table
-    var centerX: Int = width / 2
-    var centerY: Int = height / 2
+    var outputFilename: String?=null
+    var tableRadius = Toolkit.getDefaultToolkit().screenSize.height - 100
+    var centerX: Int = tableRadius / 2
+    var centerY: Int = centerX
     lateinit var ext: String
     var useGreyBackground = false
     val redConversion = 255 / 255.0
     val greenConversion = 244 / 255.0
     val blueConversion = 200 / 255.0
     var isHeadless = false
-    var maxRadius = width / 2 - 20
+    var maxRadius = tableRadius / 2 - 20
+    val deltaTime = 0.2
 
 
     /**
@@ -62,10 +62,9 @@ class Settings {
                     "-skip"        -> imageSkipCount = setValueFromArg(++index, args).toInt()
                     "-o"           -> outputFilename = setValueFromArg(++index, args)
                     "-q"           -> shouldQuitWhenDone = true
-                    "-r"           -> isReversed = true
+                    "-reversed"    -> isReversed = true
                     "-s"           -> ballRadius = setValueFromArg(++index, args).toInt()
-                    "-h"           -> height = setValueFromArg(++index, args).toInt()
-                    "-w"           -> width = setValueFromArg(++index, args).toInt()
+                    "-tableRadius" -> tableRadius = setValueFromArg(++index, args).toInt()
                     else           -> {
                         println("Unknown option " + args[index])
                         return false
@@ -79,22 +78,28 @@ class Settings {
         }
         if (isGenerateCleanBackdrop) {
             inputFilename = "clean.thr"  // should figure out a better way to noop this
-            backgroundImageName = "clean_${width}x$height.png"
+            backgroundImageName = "clean_${tableRadius}x$tableRadius.png"
             outputFilename = backgroundImageName
             imageSkipCount = 1000
             shouldQuitWhenDone = true
         }
         else {
-            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
-            if (isReversed) outputFilename = outputFilename.replace(".png", "_reversed.png")
-            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${width}x${height}.png"
+            if(outputFilename == null) outputFilename = inputFilename.replace(".thr", ".png")
+//            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
+            if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
+            if (useTwoBalls) outputFilename = outputFilename!!.replace(".png", "_2balls.png")
+            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableRadius}x${tableRadius}.png"
         }
-        centerX = width / 2
-        centerY = height / 2
-        maxRadius = width / 2 - 20
+        calculateCenter()
         // default output name to input name and png
-        ext = outputFilename.substringAfterLast('.')
+        ext = outputFilename!!.substringAfterLast('.')
         return true
+    }
+
+    fun calculateCenter() {
+        centerX = tableRadius / 2
+        centerY = centerX
+        maxRadius = tableRadius / 2 - 20
     }
 
     // verify the file extension is supported by ImageIO
@@ -112,8 +117,7 @@ class Settings {
         println("b - backgroundImageName = $backgroundImageName")
         println("useTwoBalls  = $useTwoBalls")
         println("s - ballSize = $ballRadius")
-        println("h - height = $height")
-        println("w - width = $width")
+        println("tableRadius = $tableRadius")
         println("skip imageSkipCount = $imageSkipCount")
         println("d - initialDepth = $initialSandDepth")
         println("r - isReversed = $isReversed")

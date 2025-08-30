@@ -1,5 +1,7 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Utilities.Companion.calculateRho
+import com.marginallyclever.showthr.Utilities.Companion.calculateTheta
 import com.marginallyclever.showthr.Utilities.Companion.calculateX
 import com.marginallyclever.showthr.Utilities.Companion.calculateY
 import javax.vecmath.Vector2d
@@ -14,14 +16,15 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
     fun setPositionThetaRho(theta: Double, rho: Double) {
         position.x = calculateX(theta, rho, settings)
         position.y = calculateY(theta, rho, settings)
+        println("$name rho: $rho")
     }
 
-    //    fun setTarget(x: Double, y: Double) {
-    //        target[x] = y
-    //        val diff = Vector2d(target)
-    //        diff.sub(position)
-    //        atTarget = diff.lengthSquared() < 0.1
-    //    }
+    fun setTargetXY(x: Double, y: Double) {
+        target[x] = y
+        val diff = Vector2d(target)
+        diff.sub(position)
+        atTarget = diff.lengthSquared() < 0.1
+    }
 
     fun setTargetThetaRho(theta: Double, rho: Double) {
         val x = calculateX(theta, rho, settings)
@@ -35,7 +38,9 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
     /**
      * This currently draws a straight line from the ball's current position to its target.
      *
-     * What we want to do is draw a curve if theta changes, but rho does not. This is a LOT more complicated than it sounds like, as position is in X, Y coordinates, and easy math is in theta, rho.
+     * What we want to do is draw a curve if theta changes, but rho does not. This is a LOT more complicated than it sounds like, as position is
+     * in X, Y coordinates, and easy math is in theta, rho.
+     *
      * This is fixed in SandSimulation.expandSequence(), where we tweak the initial theta and rho to produce an expanded list where the current
      * functionality will work even though it's wrong.
      */
@@ -53,9 +58,21 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
             position.add(direction)
             atTarget = false
         }
-        //        println("$name Position: $position")
-        //        val rho= sqrt(position.x * position.x + position.y * position.y)
-        //        val theta = atan2(position.y, position.x) * 180 / Math.PI
-        //        println("$name Rho: $rho, Theta: $theta")
+    }
+
+    fun getRho(): Double {
+        return calculateRho(position.x.toInt(), position.y.toInt(), settings)
+    }
+
+    fun getTheta(): Double {
+        return calculateTheta(position.x.toInt(), position.y.toInt(), settings)
+    }
+
+    override fun toString(): String {
+        val rho = calculateRho(position.x.toInt(), position.y.toInt(), settings)
+        val theta = calculateTheta(position.x.toInt(), position.y.toInt(), settings)
+        val targetRho = calculateRho(target.x.toInt(), target.y.toInt(), settings)
+        val targetTheta = calculateTheta(target.x.toInt(), target.y.toInt(), settings)
+        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
     }
 }

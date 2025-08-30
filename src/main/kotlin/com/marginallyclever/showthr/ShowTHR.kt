@@ -120,7 +120,7 @@ object ShowTHR {
         sandSimulation.setTarget(theta, rho)
         var count = 0
         while (!sandSimulation.ballAtTarget()) {
-            sandSimulation.update(0.2)
+            sandSimulation.update(settings.deltaTime)
             count++
         }
         if (index % settings.imageSkipCount == 0) {
@@ -149,6 +149,10 @@ object ShowTHR {
         return expandedSequence
     }
 
+    /**
+     *  Go through the original file and clean it up, then produce a nice list, consisting of pairs of theta and rho.
+     *
+     */
     private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
         val sequence: MutableList<Pair<Double, Double>> =
 
@@ -207,27 +211,30 @@ object ShowTHR {
                 val (theta2, rho2) = sequence[i + 1]
                 val deltaRho = abs(rho1 - rho2)
                 val deltaTheta = abs(theta1 - theta2)
-                if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
-                    val thetaDiff = theta2 - theta1
-                    val rhoDiff = rho2 - rho1
-                    val numPoints = max(1, abs(thetaDiff / .01).toInt())
-                    if (numPoints == 1) { // check for divide by zero here!
-                        newSequence.add(Pair(theta1, rho1))
-                    }
-                    else {
-                        val deltaRho = rhoDiff / (numPoints - 1) // divide by zero here!
-                        val deltaTheta = thetaDiff / (numPoints - 1) // divide by zero here!
+//                val areBothRhosNotZero = rho1 != 0.0 || rho2 != 0.0 // this doesn't really save that much time unless we only have 1 ball
+//                if (settings.useTwoBalls || areBothRhosNotZero) { // if rhos are zero, skip expanding - unless we have two balls
+                    if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
+                        val thetaDiff = theta2 - theta1
+                        val rhoDiff = rho2 - rho1
+                        val numPoints = max(1, abs(thetaDiff / .01).toInt())
+                        if (numPoints == 1) { // special case to prevent division by zero below
+                            newSequence.add(Pair(theta1, rho1))
+                        }
+                        else {
+                            val deltaRho = rhoDiff / (numPoints - 1)
+                            val deltaTheta = thetaDiff / (numPoints - 1)
 
-                        (0..<numPoints).forEach { j ->
-                            val newTheta = theta1 + deltaTheta * j
-                            val newRho = rho1 + deltaRho * j
-                            newSequence.add(Pair(newTheta, newRho))
+                            (0..<numPoints).forEach { j ->
+                                val newTheta = theta1 + deltaTheta * j
+                                val newRho = rho1 + deltaRho * j
+                                newSequence.add(Pair(newTheta, newRho))
+                            }
                         }
                     }
-                }
+//                }
                 else newSequence.add(Pair(theta1, rho1))
             }
-            newSequence.add(sequence.last())
+            if(sequence.isNotEmpty()) newSequence.add(sequence.last())
             return newSequence
         }
         else return sequence.toMutableList()
@@ -270,7 +277,6 @@ object ShowTHR {
                 else      -> "?"
             }
             stringBuilder.append("$shortFilename    $percent    Duration: $duration    timeRemaining: $timeRemaining")
-            //                .append(String.format("  %.2f    %.2f"))
             val dots = stringBuilder.toString()
 
             if (dots.isNotEmpty()) println(dots)

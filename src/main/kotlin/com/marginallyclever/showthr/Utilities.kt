@@ -1,7 +1,9 @@
 package com.marginallyclever.showthr
 
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 class Utilities {
     companion object {
@@ -12,7 +14,10 @@ class Utilities {
         }
 
         fun calculateX(theta: Double, rho: Double, settings: Settings): Double {
-            val newX = settings.centerX + sin(theta) * rho * settings.maxRadius
+            val centerX = settings.centerX
+            val sin = sin(theta)
+            val newXoffset = sin * rho * settings.maxRadius
+            val newX = centerX + newXoffset
             return newX
         }
 
@@ -24,6 +29,22 @@ class Utilities {
                 println("Missing value for ${args[index - 1]}")
                 throw IllegalArgumentException("Missing value for ${args[index - 1]}")
             }
+        }
+
+        // returns a normalized rho (0..1)
+        fun calculateRho(x: Int, y: Int, settings: Settings): Double {
+            val actualX=x-settings.centerX
+            val actualY=y-settings.centerY
+            val rho = sqrt((actualX * actualX + actualY * actualY) .toDouble())
+            val normalizedRho = rho / settings.tableRadius
+            return normalizedRho
+        }
+
+        fun calculateTheta(x: Int, y: Int, settings: Settings): Double {
+            val actualX=x-settings.centerX
+            val actualY=y-settings.centerY
+            val theta = atan2(actualY.toDouble(), actualX.toDouble()) * 180 / Math.PI
+            return theta
         }
 
     }

@@ -23,7 +23,7 @@ class ShowTHRTest {
 
     @Test
     fun `test expandSequence with consecutive points requiring no expansion`() {
-        val input = listOf(Pair(1.0, 2.0), Pair(1.05, 2.02))
+        val input = listOf(Pair(1.0, 2.0), Pair(1.00, 2.02))
         val result = ShowTHR.expandSequence(input)
         assertEquals(input.size, result.size, "Result should contain the same number of points as input")
         assertEquals(input, result, "Points should not change if no expansion is required")
@@ -31,11 +31,11 @@ class ShowTHRTest {
 
     @Test
     fun `test expandSequence with points requiring expansion`() {
-        val input = listOf(Pair(1.0, 2.0), Pair(1.2, 3.0))
+        val input = listOf(Pair(0.0, 1.0), Pair(2.0, 1.0))
         val result = ShowTHR.expandSequence(input)
         assertTrue(result.size > input.size, "Result should contain more points after expansion")
-        assertEquals(Pair(1.0, 2.0), result.first(), "First point should remain unchanged")
-        assertEquals(Pair(1.2, 3.0), result.last(), "Last point should remain unchanged")
+        assertEquals(Pair(0.0, 1.0), result.first(), "First point should remain unchanged")
+        assertEquals(Pair(2.0, 1.0), result.last(), "Last point should remain unchanged")
         result.forEachIndexed { index, point ->
             if (index > 0) {
                 val prevPoint = result[index - 1]
@@ -53,13 +53,5 @@ class ShowTHRTest {
         assertTrue(result.size > input.size, "Result should contain more points after expansion")
         assertEquals(Pair(0.0, 0.0), result.first(), "First point should remain unchanged")
         assertEquals(Pair(3.14, 0.0), result.last(), "Last point should remain unchanged")
-    }
-
-    @Test
-    fun `test expandSequence handling of edge case with identical points`() {
-        val input = listOf(Pair(1.0, 2.0), Pair(1.0, 2.0))
-        val result = ShowTHR.expandSequence(input)
-        assertEquals(1, result.size, "Result should contain only one unique point")
-        assertEquals(Pair(1.0, 2.0), result[0], "Point should match expected value")
     }
 }

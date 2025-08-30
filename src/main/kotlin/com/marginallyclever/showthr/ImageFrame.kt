@@ -1,6 +1,7 @@
 package com.marginallyclever.showthr
 
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Color.DARK_GRAY
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -18,7 +19,9 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
         layout = BorderLayout()
 
         val mainPanel = JPanel(GridBagLayout())
-        mainPanel.background = DARK_GRAY
+        val backgroundColor = bufferedImage.getRGB(0, 0)
+
+        mainPanel.background = Color(backgroundColor)
 
         val gbc = GridBagConstraints()
         gbc.gridx = 0
@@ -28,7 +31,7 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
         gbc.anchor = GridBagConstraints.CENTER
 
         val scrollPane = JScrollPane(imagePanel)
-        scrollPane.preferredSize = Dimension(settings.width, settings.height)
+        scrollPane.preferredSize = Dimension(settings.tableRadius, settings.tableRadius)
 
         mainPanel.add(imagePanel, gbc)
 //                mainPanel.add(scrollPane, gbc) // todo - figure out why the image turns to a postage stamp when the frame is resized smaller

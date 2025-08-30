@@ -16,7 +16,7 @@ import kotlin.math.sqrt
  */
 class SandSimulation(val settings: Settings) {
 
-    private val sandGrid = Array(settings.width) { DoubleArray(settings.height) } // 2D array for sand density
+    private val sandGrid = Array(settings.tableRadius) { DoubleArray(settings.tableRadius) } // 2D array for sand density
     private val ball = Ball("Ball_1", settings.ballRadius, settings)
     private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball
     private lateinit var startPosition: Vector2d
@@ -39,14 +39,14 @@ class SandSimulation(val settings: Settings) {
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
-            else                     -> BufferedImage(settings.width, settings.height, TYPE_INT_ARGB)
+            else                     -> BufferedImage(settings.tableRadius, settings.tableRadius, TYPE_INT_ARGB)
         }
         if (!settings.isHeadless) imageFrame = ImageFrame(bufferedImage, settings)
     }
 
     private fun initializeSandGrid(initialSandDepth: Double) {
-        (0..<settings.width).forEach { i ->
-            (0..<settings.height).forEach { j ->
+        (0..<settings.tableRadius).forEach { i ->
+            (0..<settings.tableRadius).forEach { j ->
                 sandGrid[i][j] = initialSandDepth // some sand in every square
             }
         }
@@ -63,8 +63,8 @@ class SandSimulation(val settings: Settings) {
     private fun readInCleanedImage(cleanFile: File): BufferedImage {
         val backgroundImage = ImageIO.read(cleanFile)
         // set the sand height to the image
-        (0..<settings.width).forEach { i ->
-            (0..<settings.height).forEach { j ->
+        (0..<settings.tableRadius).forEach { i ->
+            (0..<settings.tableRadius).forEach { j ->
                 val rgb = backgroundImage.getRGB(i, j)
                 val red: Int = (rgb and 0xff0000) shr 16
                 val newLevel = red.toDouble() / 30 // 30 seems to work...
@@ -78,7 +78,7 @@ class SandSimulation(val settings: Settings) {
         ball.setTargetThetaRho(theta, rho)
         startPosition = ball.position
         if (settings.useTwoBalls) {
-            ball2.setTargetThetaRho(theta + PI, 1.0 - rho) // not needed
+            ball2.setTargetThetaRho(getBall2Theta(theta), getBall2Rho(rho))
             startPosition2 = ball2.position // we need this for the relaxation step
         }
     }
@@ -87,14 +87,20 @@ class SandSimulation(val settings: Settings) {
         ball.setPositionThetaRho(theta, rho)
         ball.setTargetThetaRho(theta, rho)
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(theta + PI, 1.0 - rho)
-            ball2.setTargetThetaRho(theta + PI, 1.0 - rho)
+            ball2.setPositionThetaRho(getBall2Theta(theta), getBall2Rho(rho))
+            ball2.setTargetThetaRho(getBall2Theta(theta), getBall2Rho(rho))
         }
     }
 
+    private fun getBall2Rho(rho: Double): Double = 1.0 - rho
+    private fun getBall2Theta(theta: Double): Double = theta + PI
+
     fun update(deltaTime: Double) {
         ball.updatePosition(deltaTime)
-        if (settings.useTwoBalls) ball2.updatePosition(deltaTime)
+        if (settings.useTwoBalls) {
+            ball2.updatePosition(deltaTime)
+//            println("Ball1: rho=${ball.getRho()}, Ball2: rho=${ball2.getRho()}")
+        }
         makeBallPushSand() // push the sand up
         relaxSand() // let the sand settle
     }
@@ -114,7 +120,7 @@ class SandSimulation(val settings: Settings) {
         val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
-                if (i in 0..<settings.width && j >= 0 && j < settings.height) {
+                if (i in 0..<settings.tableRadius && j >= 0 && j < settings.tableRadius) {
                     val dx = i - ballX
                     val dy = j - ballY
                     if (isInsideTable(i + dx, j + dy)) {
@@ -144,7 +150,9 @@ class SandSimulation(val settings: Settings) {
     }
 
     private fun isInsideTable(x: Int, y: Int): Boolean {
-        return (x in 0..<settings.width) && (y in 0..<settings.height)
+        val isXInside = x in 0..<settings.tableRadius
+        val isYInside = y in 0..<settings.tableRadius
+        return isXInside && isYInside
     }
 
     /**
@@ -181,8 +189,8 @@ class SandSimulation(val settings: Settings) {
 
         if (startX < 0) startX = 0
         if (startY < 0) startY = 0
-        if (endX >= settings.width) endX = settings.width - 1
-        if (endY >= settings.height) endY = settings.height - 1
+        if (endX >= settings.tableRadius) endX = settings.tableRadius - 1
+        if (endY >= settings.tableRadius) endY = settings.tableRadius - 1
 
         var settled: Boolean
         do {
@@ -191,34 +199,34 @@ class SandSimulation(val settings: Settings) {
 
             for (y in startY..<endY - 1) {
                 for (x in startX..<endX - 1) {
-                    val here = sandGrid[x][y]
-                    val hereMinusSlope = here - settings.MAX_SLOPE
-                    var c = 0
+                    val sandHeightHere = sandGrid[x][y]
+                    val sandHeightHereMinusSlope = sandHeightHere - settings.MAX_SLOPE
+                    var neighborIndex = 0
 
                     // Check up, down, left, right neighbors
-                    if (isInsideTable(x - 1, y) && sandGrid[x - 1][y] < hereMinusSlope) {
-                        lowerNeighbors[c++] = x - 1
-                        lowerNeighbors[c++] = y
+                    if (isInsideTable(x - 1, y) && sandGrid[x - 1][y] < sandHeightHereMinusSlope) {
+                        lowerNeighbors[neighborIndex++] = x - 1
+                        lowerNeighbors[neighborIndex++] = y
                     }
-                    if (isInsideTable(x + 1, y) && sandGrid[x + 1][y] < hereMinusSlope) {
-                        lowerNeighbors[c++] = x + 1
-                        lowerNeighbors[c++] = y
+                    if (isInsideTable(x + 1, y) && sandGrid[x + 1][y] < sandHeightHereMinusSlope) {
+                        lowerNeighbors[neighborIndex++] = x + 1
+                        lowerNeighbors[neighborIndex++] = y
                     }
-                    if (isInsideTable(x, y - 1) && sandGrid[x][y - 1] < hereMinusSlope) {
-                        lowerNeighbors[c++] = x
-                        lowerNeighbors[c++] = y - 1
+                    if (isInsideTable(x, y - 1) && sandGrid[x][y - 1] < sandHeightHereMinusSlope) {
+                        lowerNeighbors[neighborIndex++] = x
+                        lowerNeighbors[neighborIndex++] = y - 1
                     }
-                    if (isInsideTable(x, y + 1) && sandGrid[x][y + 1] < hereMinusSlope) {
-                        lowerNeighbors[c++] = x
-                        lowerNeighbors[c++] = y + 1
+                    if (isInsideTable(x, y + 1) && sandGrid[x][y + 1] < sandHeightHereMinusSlope) {
+                        lowerNeighbors[neighborIndex++] = x
+                        lowerNeighbors[neighborIndex++] = y + 1
                     }
 
-                    if (c != 0) {
+                    if (neighborIndex != 0) {
                         settled = false
-                        val d = settings.REDISTRIBUTION_RATE * 2.0 / c
+                        val d = settings.REDISTRIBUTION_RATE * 2.0 / neighborIndex
 
                         var i = 0
-                        while (i < c) {
+                        while (i < neighborIndex) {
                             val x2 = lowerNeighbors[i]
                             val y2 = lowerNeighbors[i + 1]
                             val heightDiff = sandGrid[x][y] - sandGrid[x2][y2]
@@ -247,8 +255,8 @@ class SandSimulation(val settings: Settings) {
         //        }
         //        println("max = ${max}")
 
-        for (i in 0..<settings.width) {
-            for (j in 0..<settings.height) {
+        for (i in 0..<settings.tableRadius) {
+            for (j in 0..<settings.tableRadius) {
                 val gray = minOf(255, (sandGrid[i][j] * 30).toInt()) // Simplified calculation
                 bufferedImage.setRGB(i, j, encode32bit(gray))
             }
