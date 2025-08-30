@@ -1,5 +1,6 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.ShowTHR.settings
 import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
@@ -21,8 +22,8 @@ class Settings {
     var shouldQuitWhenDone = false
     var backgroundImageName = ""
     var imageSkipCount = 4
-    lateinit var inputFilename: String
-    var outputFilename: String?=null
+    var inputFilename: String? = null
+    var outputFilename: String? = null
     var tableRadius = Toolkit.getDefaultToolkit().screenSize.height - 100
     var centerX: Int = tableRadius / 2
     var centerY: Int = centerX
@@ -34,6 +35,7 @@ class Settings {
     var isHeadless = false
     var maxRadius = tableRadius / 2 - 20
     val deltaTime = 0.2
+    val batchTracks: MutableList<String> = mutableListOf()
 
 
     /**
@@ -65,6 +67,7 @@ class Settings {
                     "-reversed"    -> isReversed = true
                     "-s"           -> ballRadius = setValueFromArg(++index, args).toInt()
                     "-tableRadius" -> tableRadius = setValueFromArg(++index, args).toInt()
+                    "-batchTracks" -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
                     else           -> {
                         println("Unknown option " + args[index])
                         return false
@@ -84,8 +87,14 @@ class Settings {
             shouldQuitWhenDone = true
         }
         else {
-            if(outputFilename == null) outputFilename = inputFilename.replace(".thr", ".png")
-//            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
+            if (batchTracks.isEmpty() && inputFilename != null) {
+                batchTracks.add(inputFilename!!)
+            }
+            else {
+                inputFilename = batchTracks.first()
+            }
+            if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".png")
+            //            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
             if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
             if (useTwoBalls) outputFilename = outputFilename!!.replace(".png", "_2balls.png")
             if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableRadius}x${tableRadius}.png"
@@ -127,6 +136,4 @@ class Settings {
         println("ext = $ext")
 
     }
-
-    //    }
 }

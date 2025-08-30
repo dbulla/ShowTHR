@@ -45,19 +45,35 @@ object ShowTHR {
             val start = Instant.now()
 
             val sandSimulation = SandSimulation(settings)
-            try {
-                processThrFile(settings.inputFilename, sandSimulation)
-            } catch (e: IOException) {
-                println("Error reading file " + settings.inputFilename + ": " + e.message)
+            //            if (settings.batchTracks.isEmpty() && settings.inputFilename != null) {
+            //                settings.batchTracks.add(settings.inputFilename!!)
+            //            }
+            settings.batchTracks.forEach {
+                try {
+//                    val oldBallsSetting = settings.useTwoBalls
+//                    val oldReversedSetting = settings.isReversed
+//                    if (it == "clean.thr") {
+//                        settings.useTwoBalls = true
+//                        settings.isReversed = true
+//                    }
+                    processThrFile(it, sandSimulation)
+//                    settings.useTwoBalls = oldBallsSetting
+//                    settings.isReversed = oldReversedSetting
+                } catch (e: IOException) {
+                    println("Error reading file " + settings.inputFilename + ": " + e.message)
+                }
+
+                try { // save the image to disk
+                    val file = File(settings.outputFilename!!)
+                    ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
+                    println("Image saved to " + file.absolutePath)
+                } catch (e: IOException) {
+                    println("Error saving file " + settings.outputFilename + ": " + e.message)
+                }
+                // Make the new background the image that was just generated
+                settings.backgroundImageName = settings.outputFilename!!
             }
 
-            try { // save the image to disk
-                val file = File(settings.outputFilename)
-                ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
-                println("Image saved to " + file.absolutePath)
-            } catch (e: IOException) {
-                println("Error saving file " + settings.outputFilename + ": " + e.message)
-            }
             // get end time
             val end = Instant.now()
             println("Done!  Time taken: " + Duration.between(start, end).seconds + " s")
@@ -211,30 +227,30 @@ object ShowTHR {
                 val (theta2, rho2) = sequence[i + 1]
                 val deltaRho = abs(rho1 - rho2)
                 val deltaTheta = abs(theta1 - theta2)
-//                val areBothRhosNotZero = rho1 != 0.0 || rho2 != 0.0 // this doesn't really save that much time unless we only have 1 ball
-//                if (settings.useTwoBalls || areBothRhosNotZero) { // if rhos are zero, skip expanding - unless we have two balls
-                    if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
-                        val thetaDiff = theta2 - theta1
-                        val rhoDiff = rho2 - rho1
-                        val numPoints = max(1, abs(thetaDiff / .01).toInt())
-                        if (numPoints == 1) { // special case to prevent division by zero below
-                            newSequence.add(Pair(theta1, rho1))
-                        }
-                        else {
-                            val deltaRho = rhoDiff / (numPoints - 1)
-                            val deltaTheta = thetaDiff / (numPoints - 1)
+                //                val areBothRhosNotZero = rho1 != 0.0 || rho2 != 0.0 // this doesn't really save that much time unless we only have 1 ball
+                //                if (settings.useTwoBalls || areBothRhosNotZero) { // if rhos are zero, skip expanding - unless we have two balls
+                if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
+                    val thetaDiff = theta2 - theta1
+                    val rhoDiff = rho2 - rho1
+                    val numPoints = max(1, abs(thetaDiff / .01).toInt())
+                    if (numPoints == 1) { // special case to prevent division by zero below
+                        newSequence.add(Pair(theta1, rho1))
+                    }
+                    else {
+                        val deltaRho = rhoDiff / (numPoints - 1)
+                        val deltaTheta = thetaDiff / (numPoints - 1)
 
-                            (0..<numPoints).forEach { j ->
-                                val newTheta = theta1 + deltaTheta * j
-                                val newRho = rho1 + deltaRho * j
-                                newSequence.add(Pair(newTheta, newRho))
-                            }
+                        (0..<numPoints).forEach { j ->
+                            val newTheta = theta1 + deltaTheta * j
+                            val newRho = rho1 + deltaRho * j
+                            newSequence.add(Pair(newTheta, newRho))
                         }
                     }
-//                }
+                }
+                //                }
                 else newSequence.add(Pair(theta1, rho1))
             }
-            if(sequence.isNotEmpty()) newSequence.add(sequence.last())
+            if (sequence.isNotEmpty()) newSequence.add(sequence.last())
             return newSequence
         }
         else return sequence.toMutableList()
