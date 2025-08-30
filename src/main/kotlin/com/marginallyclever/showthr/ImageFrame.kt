@@ -2,10 +2,7 @@ package com.marginallyclever.showthr
 
 import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.Color.DARK_GRAY
 import java.awt.Dimension
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
 import java.awt.image.BufferedImage
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -18,26 +15,18 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
     init {
         layout = BorderLayout()
 
-        val mainPanel = JPanel(GridBagLayout())
+        val mainPanel = JPanel(BorderLayout())
         val backgroundColor = bufferedImage.getRGB(0, 0)
 
         mainPanel.background = Color(backgroundColor)
 
-        val gbc = GridBagConstraints()
-        gbc.gridx = 0
-        gbc.gridy = 0
-//        gbc.weightx = 0.0 // Don't let it expand horizontally
-//        gbc.weighty = 0.0 // Don't let it expand vertically
-        gbc.anchor = GridBagConstraints.CENTER
 
         val scrollPane = JScrollPane(imagePanel)
-        scrollPane.preferredSize = Dimension(settings.tableRadius, settings.tableRadius)
-
-        mainPanel.add(imagePanel, gbc)
-//                mainPanel.add(scrollPane, gbc) // todo - figure out why the image turns to a postage stamp when the frame is resized smaller
+        mainPanel.add(scrollPane, BorderLayout.CENTER)
         add(mainPanel, BorderLayout.CENTER)
-//        add(scrollPane, BorderLayout.CENTER)
         imagePanel.updateImage(bufferedImage)
+        imagePanel.preferredSize = Dimension(settings.tableRadius, settings.tableRadius)
+        imagePanel.size=imagePanel.preferredSize
         defaultCloseOperation = EXIT_ON_CLOSE
         pack()
         // center the frame on the screen

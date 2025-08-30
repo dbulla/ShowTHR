@@ -11,9 +11,9 @@ internal class BallTest {
 
     @BeforeEach
     fun setup() {
-        settings = Settings() // Assuming Settings has a parameterless constructor
-        settings.tableRadius = 200
+        settings = Settings().apply { tableRadius = 200 } // Assuming Settings has a parameterless constructor
         settings.calculateCenter()
+
     }
 
     @Test

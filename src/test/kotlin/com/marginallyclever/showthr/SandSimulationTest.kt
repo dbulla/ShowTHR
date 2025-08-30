@@ -14,8 +14,7 @@ class SandSimulationTest {
 
     @BeforeEach
     fun setup() {
-        settings = Settings() // Assuming Settings has a parameterless constructor
-        settings.tableRadius = 300
+        settings = Settings().apply { tableRadius=300 } // Assuming Settings has a parameterless constructor
         settings.calculateCenter()
     }
 
