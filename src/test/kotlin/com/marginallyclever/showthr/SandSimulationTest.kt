@@ -41,8 +41,8 @@ class SandSimulationTest {
             if (sandSimulation.ballAtTarget()) {
                 val r = Math.toRadians(a)
                 sandSimulation.setTarget(
-                    settings.tableDiameter / 2.0 + cos(r) * d,
-                    settings.tableDiameter / 2.0 + sin(r) * d
+                    settings.tableRadius + cos(r) * d,
+                    settings.tableRadius + sin(r) * d
                 )
                 d = ((settings.tableDiameter - 40) / 2.0) - (a / 360.0) * 10
                 a += 5.0

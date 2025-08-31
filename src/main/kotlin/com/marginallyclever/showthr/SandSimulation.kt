@@ -24,8 +24,8 @@ class SandSimulation(val settings: Settings) {
     private var imageFrame: ImageFrame? = null
 
     var bufferedImage: BufferedImage
-    val ballRelaxedMargin = (ball.radius * settings.RELAX_MARGIN).toInt()
-    val ball2RelaxedMargin = (ball2.radius * settings.RELAX_MARGIN).toInt()
+//    val ballRelaxedMargin = (ball.radius * settings.RELAX_MARGIN).toInt()
+//    val ball2RelaxedMargin = (ball2.radius * settings.RELAX_MARGIN).toInt()
 
     init {
         ball.setPositionThetaRho(0.0, 0.0)
@@ -160,11 +160,11 @@ class SandSimulation(val settings: Settings) {
      */
     @Suppress("DuplicatedCode")
     private fun relaxSand() {
-        relaxSand(startPosition, ball, ballRelaxedMargin)
-        if (settings.useTwoBalls) relaxSand(startPosition2, ball2, ball2RelaxedMargin)
+        relaxSand(startPosition, ball)
+        if (settings.useTwoBalls) relaxSand(startPosition2, ball2)
     }
 
-    private fun relaxSand(startPosition: Vector2d, ball: Ball, ballRelaxedMargin: Int) {
+    private fun relaxSand(startPosition: Vector2d, ball: Ball) {
         var startX = startPosition.x.toInt()
         var startY = startPosition.y.toInt()
         var endX = ball.position.x.toInt()
@@ -176,16 +176,16 @@ class SandSimulation(val settings: Settings) {
             endX = temp
         }
 
-        startX -= ballRelaxedMargin
-        endX += ballRelaxedMargin
+        startX -= ball.ballRelaxedMargin
+        endX += ball.ballRelaxedMargin
 
         if (startY > endY) {
             val temp = startY
             startY = endY
             endY = temp
         }
-        startY -= ballRelaxedMargin
-        endY += ballRelaxedMargin
+        startY -= ball.ballRelaxedMargin
+        endY += ball.ballRelaxedMargin
 
         if (startX < 0) startX = 0
         if (startY < 0) startY = 0

@@ -13,19 +13,18 @@ internal class BallTest {
     fun setup() {
         settings = Settings().apply { tableDiameter = 200 } // Assuming Settings has a parameterless constructor
         settings.calculateCenter()
-
     }
 
     @Test
     fun `test getRho with position at origin`() {
-        val ball = Ball("TestBall", 10, settings)
+        val ball = Ball("TestBall", 5, settings)
         ball.setPositionThetaRho(0.0,0.0)
         assertEquals(0.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on positive X-axis`() {
-        val ball = Ball("TestBall", 10, settings)
+        val ball = Ball("TestBall", 5, settings)
         ball.setPositionThetaRho(0.0,1.0)
         val actual = ball.getRho()
         assertEquals(1.0, actual, 0.0001)
@@ -33,21 +32,21 @@ internal class BallTest {
 
     @Test
     fun `test getRho with position on positive Y-axis`() {
-        val ball = Ball("TestBall", 10, settings)
+        val ball = Ball("TestBall", 5, settings)
         ball.setPositionThetaRho(Math.PI/2,1.0)
         assertEquals(1.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on diagonal`() {
-        val ball = Ball("TestBall", 10, settings)
+        val ball = Ball("TestBall", 5, settings)
         ball.setPositionThetaRho(Math.PI/4,1.0)
         assertEquals(1.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on negative X-axis`() {
-        val ball = Ball("TestBall", 10, settings)
+        val ball = Ball("TestBall", 5, settings)
         ball.setPositionThetaRho(Math.PI,1.0)
         assertEquals(1.0, ball.getRho(), 0.0001)
     }

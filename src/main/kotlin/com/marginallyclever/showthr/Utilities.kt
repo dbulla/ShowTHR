@@ -9,16 +9,18 @@ class Utilities {
     companion object {
 
         fun calculateY(theta: Double, rho: Double, settings: Settings): Double {
-            val newY = settings.centerY - cos(theta) * rho * settings.maxRadius
-            // todo why no y offset?
+            val centerY = settings.centerY
+            val cos = cos(theta)
+            val newYOffset = cos * rho * settings.maxRadius
+            val newY = centerY + newYOffset
             return newY
         }
 
         fun calculateX(theta: Double, rho: Double, settings: Settings): Double {
             val centerX = settings.centerX
             val sin = sin(theta)
-            val newXoffset = sin * rho * settings.maxRadius
-            val newX = centerX + newXoffset
+            val newXOffset = sin * rho * settings.maxRadius
+            val newX = centerX + newXOffset
             return newX
         }
 

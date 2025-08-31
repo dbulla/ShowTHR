@@ -12,11 +12,12 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
     private var target: Vector2d = Vector2d()
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false
+    val ballRelaxedMargin = (radius * settings.RELAX_MARGIN).toInt()
 
     fun setPositionThetaRho(theta: Double, rho: Double) {
         position.x = calculateX(theta, rho, settings)
         position.y = calculateY(theta, rho, settings)
-        println("$name rho: $rho")
+//        println("$name rho: $rho")
     }
 
     fun setTargetXY(x: Double, y: Double) {
