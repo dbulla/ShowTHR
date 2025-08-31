@@ -10,6 +10,7 @@ class Utilities {
 
         fun calculateY(theta: Double, rho: Double, settings: Settings): Double {
             val newY = settings.centerY - cos(theta) * rho * settings.maxRadius
+            // todo why no y offset?
             return newY
         }
 
@@ -36,7 +37,7 @@ class Utilities {
             val actualX=x-settings.centerX
             val actualY=y-settings.centerY
             val rho = sqrt((actualX * actualX + actualY * actualY) .toDouble())
-            val normalizedRho = rho / settings.tableRadius
+            val normalizedRho = rho / settings.tableDiameter
             return normalizedRho
         }
 

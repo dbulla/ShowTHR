@@ -25,7 +25,7 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
         mainPanel.add(scrollPane, BorderLayout.CENTER)
         add(mainPanel, BorderLayout.CENTER)
         imagePanel.updateImage(bufferedImage)
-        imagePanel.preferredSize = Dimension(settings.tableRadius, settings.tableRadius)
+        imagePanel.preferredSize = Dimension(settings.tableDiameter, settings.tableDiameter)
         imagePanel.size=imagePanel.preferredSize
         defaultCloseOperation = EXIT_ON_CLOSE
         pack()

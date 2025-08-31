@@ -98,7 +98,7 @@ class UtilitiesTest {
 
     @Test
     fun `test calculateRho with point at the center of the table`() {
-        val settings = Settings().apply { centerX = 100; centerY = 100; tableRadius = 200 }
+        val settings = Settings().apply { centerX = 100; centerY = 100; tableDiameter = 200 }
         val x = 100
         val y = 100
         val result = calculateRho(x, y, settings)
@@ -107,7 +107,7 @@ class UtilitiesTest {
 
     @Test
     fun `test calculateRho with point at the edge of the table radius`() {
-        val settings = Settings().apply { centerX = 100; centerY = 100; tableRadius = 200 }
+        val settings = Settings().apply { centerX = 100; centerY = 100; tableDiameter = 200 }
         val x = 300 // centerX + tableRadius
         val y = 100
         val result = calculateRho(x, y, settings)
@@ -116,7 +116,7 @@ class UtilitiesTest {
 
     @Test
     fun `test calculateRho with point outside the table radius`() {
-        val settings = Settings().apply { centerX = 100; centerY = 100; tableRadius = 200 }
+        val settings = Settings().apply { centerX = 100; centerY = 100; tableDiameter = 200 }
         val x = 400
         val y = 100
         val result = calculateRho(x, y, settings)
@@ -125,11 +125,11 @@ class UtilitiesTest {
 
     @Test
     fun `test calculateRho with negative x and y coordinates`() {
-        val settings = Settings().apply { centerX = 100; centerY = 100; tableRadius = 200 }
+        val settings = Settings().apply { centerX = 100; centerY = 100; tableDiameter = 200 }
         val x = 0
         val y = 0
         val result = calculateRho(x, y, settings)
-        val expected = sqrt((settings.centerX * settings.centerX + settings.centerY * settings.centerY).toDouble()) / settings.tableRadius
+        val expected = sqrt((settings.centerX * settings.centerX + settings.centerY * settings.centerY).toDouble()) / settings.tableDiameter
         assertEquals(expected, result, "calculateRho should correctly calculate rho for negative coordinates")
     }
 

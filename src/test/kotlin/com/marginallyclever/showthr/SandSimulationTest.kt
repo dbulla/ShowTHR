@@ -14,7 +14,7 @@ class SandSimulationTest {
 
     @BeforeEach
     fun setup() {
-        settings = Settings().apply { tableRadius=300 } // Assuming Settings has a parameterless constructor
+        settings = Settings().apply { tableDiameter=300 } // Assuming Settings has a parameterless constructor
         settings.calculateCenter()
     }
 
@@ -34,17 +34,17 @@ class SandSimulationTest {
     fun testSandSimulationSpiral() {
         val sandSimulation = SandSimulation(settings)
         sandSimulation.setTarget(100.0, 100.0)
-        var d = (settings.tableRadius - 40) / 2.0
+        var d = (settings.tableDiameter - 40) / 2.0
         var a = 0.0
         for (i in 0..9999) {
             sandSimulation.update(0.5)
             if (sandSimulation.ballAtTarget()) {
                 val r = Math.toRadians(a)
                 sandSimulation.setTarget(
-                    settings.tableRadius / 2.0 + cos(r) * d,
-                    settings.tableRadius / 2.0 + sin(r) * d
+                    settings.tableDiameter / 2.0 + cos(r) * d,
+                    settings.tableDiameter / 2.0 + sin(r) * d
                 )
-                d = ((settings.tableRadius - 40) / 2.0) - (a / 360.0) * 10
+                d = ((settings.tableDiameter - 40) / 2.0) - (a / 360.0) * 10
                 a += 5.0
             }
             if (i % 100 == 0) {
@@ -66,8 +66,8 @@ class SandSimulationTest {
     @Test
     @Throws(IOException::class)
     fun testSandSimulationFromFile() {
-        settings.tableRadius = 100
-        settings.tableRadius = 100
+        settings.tableDiameter = 100
+        settings.tableDiameter = 100
         settings.calculateCenter()
         val sandSimulation = SandSimulation(settings)
         val showThr = ShowTHR

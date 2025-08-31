@@ -1,6 +1,5 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.ShowTHR.settings
 import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
@@ -24,16 +23,20 @@ class Settings {
     var imageSkipCount = 4
     var inputFilename: String? = null
     var outputFilename: String? = null
-    var tableRadius = Toolkit.getDefaultToolkit().screenSize.height - 100
-    var centerX: Int = tableRadius / 2
+
+    var tableDiameter = Toolkit.getDefaultToolkit().screenSize.height - 100
+    var tableRadius = tableDiameter / 2
+    var centerX: Int = tableRadius
     var centerY: Int = centerX
+
+
     lateinit var ext: String
     var useGreyBackground = false
     val redConversion = 255 / 255.0
     val greenConversion = 244 / 255.0
     val blueConversion = 200 / 255.0
     var isHeadless = false
-    var maxRadius = tableRadius / 2 - 20
+    var maxRadius = tableRadius - 20
     val deltaTime = 0.2
     val batchTracks: MutableList<String> = mutableListOf()
 
@@ -66,7 +69,7 @@ class Settings {
                     "-q"           -> shouldQuitWhenDone = true
                     "-reversed"    -> isReversed = true
                     "-s"           -> ballRadius = setValueFromArg(++index, args).toInt()
-                    "-tableRadius" -> tableRadius = setValueFromArg(++index, args).toInt()
+                    "-tableDiameter" -> tableDiameter = setValueFromArg(++index, args).toInt()
                     "-batchTracks" -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
                     else           -> {
                         println("Unknown option " + args[index])
@@ -81,7 +84,7 @@ class Settings {
         }
         if (isGenerateCleanBackdrop) {
             inputFilename = "clean.thr"  // should figure out a better way to noop this
-            backgroundImageName = "clean_${tableRadius}x$tableRadius.png"
+            backgroundImageName = "clean_${tableDiameter}x$tableDiameter.png"
             outputFilename = backgroundImageName
             imageSkipCount = 1000
             shouldQuitWhenDone = true
@@ -94,10 +97,10 @@ class Settings {
                 inputFilename = batchTracks.first()
             }
             if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".png")
-            //            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
+//            if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".jpg")
             if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
             if (useTwoBalls) outputFilename = outputFilename!!.replace(".png", "_2balls.png")
-            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableRadius}x${tableRadius}.png"
+            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableDiameter}x${tableDiameter}.png"
         }
         calculateCenter()
         // default output name to input name and png
@@ -106,9 +109,10 @@ class Settings {
     }
 
     fun calculateCenter() {
-        centerX = tableRadius / 2
+        tableRadius=tableDiameter/2
+        centerX = tableRadius
         centerY = centerX
-        maxRadius = tableRadius / 2 - 20
+        maxRadius = tableRadius - 20
     }
 
     // verify the file extension is supported by ImageIO
@@ -126,7 +130,7 @@ class Settings {
         println("b - backgroundImageName = $backgroundImageName")
         println("useTwoBalls  = $useTwoBalls")
         println("s - ballSize = $ballRadius")
-        println("tableRadius = $tableRadius")
+        println("tableRadius = $tableDiameter")
         println("skip imageSkipCount = $imageSkipCount")
         println("d - initialDepth = $initialSandDepth")
         println("r - isReversed = $isReversed")
