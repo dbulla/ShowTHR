@@ -97,7 +97,7 @@ class Settings {
                 inputFilename = batchTracks.first()
             }
             if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".png")
-//            if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".jpg")
+//            if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".jpg") // this doesn't work for some reason, only png
             if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
             if (useTwoBalls) outputFilename = outputFilename!!.replace(".png", "_2balls.png")
             if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableDiameter}x${tableDiameter}.png"
