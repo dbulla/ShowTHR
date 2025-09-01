@@ -255,7 +255,7 @@ class SandSimulation(val settings: Settings) {
                     max = max(max, sandGrid[i][j])
                 }
             }
-            println("max = ${max}")
+//            println("max = ${max}")
         }
         for (i in 0..<settings.tableDiameter) {
             for (j in 0..<settings.tableDiameter) {
