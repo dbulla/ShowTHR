@@ -24,11 +24,10 @@ class Settings {
     var inputFilename: String? = null
     var outputFilename: String? = null
 
-    var tableDiameter = Toolkit.getDefaultToolkit().screenSize.height - 100
-    var tableRadius = tableDiameter / 2
-    var centerX: Int = tableRadius
-    var centerY: Int = centerX
-
+    var tableDiameter = 100
+    var tableRadius = 0
+    var centerX = 0
+    var centerY = 0
 
     lateinit var ext: String
     var useGreyBackground = false
@@ -56,22 +55,22 @@ class Settings {
             var index = 0
             while (index < args.size) {
                 when (args[index]) {
-                    "-b"           -> backgroundImageName = setValueFromArg(++index, args)
-                    "-useTwoBalls" -> useTwoBalls = true
-                    "-c"           -> isGenerateCleanBackdrop = true
-                    "-d"           -> initialSandDepth = setValueFromArg(++index, args).toDouble()
-                    "-e"           -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                    "-headless"    -> isHeadless = true
-                    "-i"           -> inputFilename = args[++index]
-                    "-g"           -> useGreyBackground = true
-                    "-skip"        -> imageSkipCount = setValueFromArg(++index, args).toInt()
-                    "-o"           -> outputFilename = setValueFromArg(++index, args)
-                    "-q"           -> shouldQuitWhenDone = true
-                    "-reversed"    -> isReversed = true
-                    "-s"           -> ballRadius = setValueFromArg(++index, args).toInt()
+                    "-b"             -> backgroundImageName = setValueFromArg(++index, args)
+                    "-useTwoBalls"   -> useTwoBalls = true
+                    "-c"             -> isGenerateCleanBackdrop = true
+                    "-d"             -> initialSandDepth = setValueFromArg(++index, args).toDouble()
+                    "-e"             -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                    "-headless"      -> isHeadless = true
+                    "-i"             -> inputFilename = args[++index]
+                    "-g"             -> useGreyBackground = true
+                    "-skip"          -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                    "-o"             -> outputFilename = setValueFromArg(++index, args)
+                    "-q"             -> shouldQuitWhenDone = true
+                    "-reversed"      -> isReversed = true
+                    "-s"             -> ballRadius = setValueFromArg(++index, args).toInt()
                     "-tableDiameter" -> tableDiameter = setValueFromArg(++index, args).toInt()
-                    "-batchTracks" -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
-                    else           -> {
+                    "-batchTracks"   -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
+                    else             -> {
                         println("Unknown option " + args[index])
                         return false
                     }
@@ -81,6 +80,9 @@ class Settings {
         } catch (e: Exception) {
             println("Problem parsing arguments ${e.message}")
             return false
+        }
+        if (!isHeadless && tableDiameter == 0) {
+            tableDiameter = Toolkit.getDefaultToolkit().screenSize.height - 100
         }
         if (isGenerateCleanBackdrop) {
             inputFilename = "clean.thr"  // should figure out a better way to noop this
@@ -97,7 +99,7 @@ class Settings {
                 inputFilename = batchTracks.first()
             }
             if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".png")
-//            if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".jpg") // this doesn't work for some reason, only png
+            //            if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".jpg") // this doesn't work for some reason, only png
             if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
             if (useTwoBalls) outputFilename = outputFilename!!.replace(".png", "_2balls.png")
             if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableDiameter}x${tableDiameter}.png"
@@ -109,7 +111,7 @@ class Settings {
     }
 
     fun calculateCenter() {
-        tableRadius=tableDiameter/2
+        tableRadius = tableDiameter / 2
         centerX = tableRadius
         centerY = centerX
         maxRadius = tableRadius - 20
