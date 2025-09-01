@@ -37,7 +37,7 @@ class SandSimulationTest {
         var d = (settings.tableDiameter - 40) / 2.0
         var a = 0.0
         for (i in 0..9999) {
-            sandSimulation.update(0.5)
+            sandSimulation.update()
             if (sandSimulation.ballAtTarget()) {
                 val r = Math.toRadians(a)
                 sandSimulation.setTarget(

@@ -249,4 +249,104 @@ class UtilitiesTest {
         val result = calculateTheta(x, y, settings)
         assertEquals(-135.0, result, "calculateTheta should return -135 degrees when the point is in the third quadrant")
     }
+
+
+    /**
+     * Tests for the `getBall2Rho` function in the `Companion` object of `Utilities`.
+     *
+     * Description:
+     * The `getBall2Rho` function computes the complementary value of the given rho value,
+     * as `1.0 - rho`. The result represents the flipped radial coordinate in the context
+     * of a two-ball system on a coordinate plane.
+     */
+
+    @Test
+    fun `test getBall2Rho with rho as zero`() {
+        // Test case when rho is 0
+        val rho = 0.0
+        val expected = 1.0
+        val actual = Utilities.getBall2Rho(rho)
+        assertEquals(expected, actual, "getBall2Rho(0.0) should return 1.0")
+    }
+
+    @Test
+    fun `test getBall2Rho with rho as one`() {
+        // Test case when rho is 1
+        val rho = 1.0
+        val expected = 0.0
+        val actual = Utilities.getBall2Rho(rho)
+        assertEquals(expected, actual, "getBall2Rho(1.0) should return 0.0")
+    }
+
+    @Test
+    fun `test getBall2Rho with rho as half`() {
+        // Test case when rho is 0.5
+        val rho = 0.5
+        val expected = 0.5
+        val actual = Utilities.getBall2Rho(rho)
+        assertEquals(expected, actual, "getBall2Rho(0.5) should return 0.5")
+    }
+
+    @Test
+    fun `test getBall2Rho with rho as small positive value`() {
+        // Test case when rho is a small positive value
+        val rho = 0.1
+        val expected = 0.9
+        val actual = Utilities.getBall2Rho(rho)
+        assertEquals(expected, actual, "getBall2Rho(0.1) should return 0.9")
+    }
+
+    @Test
+    fun `test getBall2Rho with rho as large positive value less than one`() {
+        // Test case when rho is a large positive value less than one
+        val rho = 0.9
+        val expected = 0.1
+        val actual = Utilities.getBall2Rho(rho)
+        assertEquals(expected, actual, "getBall2Rho(0.9) should return 0.1")
+    }
+
+    @Test
+    fun `test getBall2Theta with theta as zero`() {
+        // Test case when theta is 0
+        val theta = 0.0
+        val expected = Math.PI
+        val actual = Utilities.getBall2Theta(theta)
+        assertEquals(expected, actual, "getBall2Theta(0.0) should return PI")
+    }
+
+    @Test
+    fun `test getBall2Theta with theta as PI divided by 2`() {
+        // Test case when theta is PI/2
+        val theta = Math.PI / 2
+        val expected = Math.PI + Math.PI / 2
+        val actual = Utilities.getBall2Theta(theta)
+        assertEquals(expected, actual, "getBall2Theta(PI/2) should return 3*PI/2")
+    }
+
+    @Test
+    fun `test getBall2Theta with theta as PI`() {
+        // Test case when theta is PI
+        val theta = Math.PI
+        val expected = 2 * Math.PI
+        val actual = Utilities.getBall2Theta(theta)
+        assertEquals(expected, actual, "getBall2Theta(PI) should return 2*PI")
+    }
+
+    @Test
+    fun `test getBall2Theta with theta as three times PI divided by 2`() {
+        // Test case when theta is 3*PI/2
+        val theta = 3 * Math.PI / 2
+        val expected = 2 * Math.PI + Math.PI / 2
+        val actual = Utilities.getBall2Theta(theta)
+        assertEquals(expected, actual, "getBall2Theta(3*PI/2) should return 5*PI/2")
+    }
+
+    @Test
+    fun `test getBall2Theta with theta as negative angle`() {
+        // Test case when theta is a negative value
+        val theta = -Math.PI / 2
+        val expected = Math.PI / 2
+        val actual = Utilities.getBall2Theta(theta)
+        assertEquals(expected, actual, "getBall2Theta(-PI/2) should return PI/2")
+    }
 }

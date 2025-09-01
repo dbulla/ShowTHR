@@ -1,5 +1,6 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Utilities.Companion.calculateDistanceRhoTheta
 import com.marginallyclever.showthr.Utilities.Companion.calculateRho
 import com.marginallyclever.showthr.Utilities.Companion.calculateTheta
 import com.marginallyclever.showthr.Utilities.Companion.calculateX
@@ -8,32 +9,37 @@ import javax.vecmath.Vector2d
 
 // Ball class for handling ball movement and position
 internal class Ball(val name: String, val radius: Int, val settings: Settings) {
-    internal var position: Vector2d = Vector2d()
-    private var target: Vector2d = Vector2d()
+    internal var position: ThetaRho = ThetaRho(0.0, 0.0)
+    private var target: ThetaRho = ThetaRho(0.0, 0.0)
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false
     val ballRelaxedMargin = (radius * settings.RELAX_MARGIN).toInt()
 
-    fun setPositionThetaRho(theta: Double, rho: Double) {
-        position.x = calculateX(theta, rho, settings)
-        position.y = calculateY(theta, rho, settings)
-//        println("$name rho: $rho")
+    fun setPositionThetaRho(thetaRho: ThetaRho) {
+        this.position = thetaRho
+        //        position.x = calculateX(theta, rho, settings)
+        //        position.y = calculateY(theta, rho, settings)
+        //        println("$name rho: $rho")
     }
 
-    fun setTargetXY(x: Double, y: Double) {
-        target[x] = y
-        val diff = Vector2d(target)
-        diff.sub(position)
-        atTarget = diff.lengthSquared() < 0.1
-    }
+    //    fun setTargetXY(x: Double, y: Double) {
+    //        target[x] = y
+    //        val diff = Vector2d(target)
+    //        diff.sub(position)
+    //        atTarget = diff.lengthSquared() < 0.1
+    //    }
 
-    fun setTargetThetaRho(theta: Double, rho: Double) {
-        val x = calculateX(theta, rho, settings)
-        val y = calculateY(theta, rho, settings)
-        target[x] = y
-        val diff = Vector2d(target)
-        diff.sub(position)
-        atTarget = diff.lengthSquared() < 0.1
+    fun setTargetThetaRho(thetaRho: ThetaRho) {
+        //        val x = calculateX(theta, rho, settings)
+        //        val y = calculateY(theta, rho, settings)
+        //        target[x] = y
+        //        val diff = Vector2d(target)
+        //        diff.sub(position)
+        //        atTarget = diff.lengthSquared() < 0.1
+        target = thetaRho
+        val distance = calculateDistanceRhoTheta(position, target)
+        atTarget = distance < .001
+
     }
 
     /**
@@ -46,34 +52,46 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
      * functionality will work even though it's wrong.
      */
     fun updatePosition(deltaTime: Double) {
-        val direction = Vector2d(target)
-        direction.sub(position)
-        val len = direction.lengthSquared()
-        if (len < speed * deltaTime) {
-            position.set(target)
-            atTarget = true
-        }
-        else {
-            direction.normalize()
-            direction.scale(speed * deltaTime)
-            position.add(direction)
-            atTarget = false
-        }
+        //        val direction = Vector2d(target)
+        //        direction.sub(position)
+        //
+        //        val len = direction.lengthSquared()
+        //        if (len < speed * deltaTime) { // don't overshoot
+        //            position.set(target)
+        //            atTarget = true
+        //        }
+        //        else {
+        //            direction.normalize()
+        //            direction.scale(speed * deltaTime)
+        //            position.add(direction)
+        //            atTarget = false
+        //        }
+        // take the deltas
+        //        val distance = calculateDistanceRhoTheta(position, target)
+        val deltaTheta = speed * deltaTime * (target.theta - position.theta)
+        val deltaRho = speed * deltaTime * (target.rho - position.rho)
+        position = ThetaRho(position.theta + deltaTheta,position.rho + deltaRho )
+        val distance = calculateDistanceRhoTheta(position, target)
+        atTarget = distance < 0.01
+//        println("position: $position, distance: $distance  ")
     }
 
     fun getRho(): Double {
-        return calculateRho(position.x.toInt(), position.y.toInt(), settings)
+        //        return calculateRho(position.x.toInt(), position.y.toInt(), settings)
+        return position.rho
     }
 
     fun getTheta(): Double {
-        return calculateTheta(position.x.toInt(), position.y.toInt(), settings)
+        //        return calculateTheta(position.x.toInt(), position.y.toInt(), settings)
+        return position.theta
     }
 
     override fun toString(): String {
-        val rho = calculateRho(position.x.toInt(), position.y.toInt(), settings)
-        val theta = calculateTheta(position.x.toInt(), position.y.toInt(), settings)
-        val targetRho = calculateRho(target.x.toInt(), target.y.toInt(), settings)
-        val targetTheta = calculateTheta(target.x.toInt(), target.y.toInt(), settings)
-        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
+        //        val rho = calculateRho(position.x.toInt(), position.y.toInt(), settings)
+        //        val theta = calculateTheta(position.x.toInt(), position.y.toInt(), settings)
+        //        val targetRho = calculateRho(target.x.toInt(), target.y.toInt(), settings)
+        //        val targetTheta = calculateTheta(target.x.toInt(), target.y.toInt(), settings)
+        //        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
+        return "Ball(name='$name',  Position:($position),  target:($target), speed=$speed, atTarget=$atTarget)"
     }
 }

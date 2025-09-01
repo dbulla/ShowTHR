@@ -24,7 +24,7 @@ where `<requires a value>` and `[optional parts]`
 
 should produce the following:
 
-![Example](sand_simulation.png)
+![Example](testTracks/sand_simulation.png)
 
 ## Notes
 

@@ -50,26 +50,19 @@ object ShowTHR {
             //            }
             settings.batchTracks.forEach {
                 try {
-//                    val oldBallsSetting = settings.useTwoBalls
-//                    val oldReversedSetting = settings.isReversed
-//                    if (it == "clean.thr") {
-//                        settings.useTwoBalls = true
-//                        settings.isReversed = true
-//                    }
+                    //                    val oldBallsSetting = settings.useTwoBalls
+                    //                    val oldReversedSetting = settings.isReversed
+                    //                    if (it == "clean.thr") {
+                    //                        settings.useTwoBalls = true
+                    //                        settings.isReversed = true
+                    //                    }
                     processThrFile(it, sandSimulation)
-//                    settings.useTwoBalls = oldBallsSetting
-//                    settings.isReversed = oldReversedSetting
+                    //                    settings.useTwoBalls = oldBallsSetting
+                    //                    settings.isReversed = oldReversedSetting
                 } catch (e: IOException) {
                     println("Error reading file " + settings.inputFilename + ": " + e.message)
                 }
-
-                try { // save the image to disk
-                    val file = File(settings.outputFilename!!)
-                    ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
-                    println("Image saved to " + file.absolutePath)
-                } catch (e: IOException) {
-                    println("Error saving file " + settings.outputFilename + ": " + e.message)
-                }
+                sandSimulation.writeImage()
                 // Make the new background the image that was just generated
                 settings.backgroundImageName = settings.outputFilename!!
             }
@@ -105,18 +98,17 @@ object ShowTHR {
         val numLines = expandedSequence.size
 
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-        val firstTheta = expandedSequence.first().first
-        val firstRho = expandedSequence.first().second
-        sandSimulation.setTarget(firstTheta, firstRho)
+        sandSimulation.setTarget(expandedSequence.first())
 
         expandedSequence.forEachIndexed { index, it ->
+//            println("Processing line $index of $numLines")
             previousPercentage = moveToNextRhoTheta(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
         }
     }
 
     @OptIn(ExperimentalTime::class)
     private fun moveToNextRhoTheta(
-        it: Pair<Double, Double>,
+        thetaRho: ThetaRho,
         sandSimulation: SandSimulation,
         index: Int,
         previousPercentage: Double,
@@ -126,17 +118,15 @@ object ShowTHR {
         startTime: kotlin.time.Instant,
     ): Double {
 
-        val theta = it.first
-        val rho = it.second
-
         if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setInitialBallPosition(theta, rho)
+            sandSimulation.setInitialBallPosition(thetaRho)
         }
 
-        sandSimulation.setTarget(theta, rho)
+        sandSimulation.setTarget(thetaRho)
         var count = 0
         while (!sandSimulation.ballAtTarget()) {
-            sandSimulation.update(settings.deltaTime)
+//            println("count = $count, ball not at target")
+            sandSimulation.update()
             count++
         }
         if (index % settings.imageSkipCount == 0) {
@@ -146,7 +136,7 @@ object ShowTHR {
         return newPreviousPercentage
     }
 
-    private fun extractRhoThetaPairs(file: File): MutableList<Pair<Double, Double>> {
+    private fun extractRhoThetaPairs(file: File): MutableList<ThetaRho> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
             settings.isGenerateCleanBackdrop -> createCleaningTrack()
@@ -158,7 +148,7 @@ object ShowTHR {
                 }
             }
         }
-        var sequence: List<Pair<Double, Double>> = parseSequence(trackLines, regex)
+        var sequence: List<ThetaRho> = parseSequence(trackLines, regex)
         if (settings.isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
@@ -169,8 +159,8 @@ object ShowTHR {
      *  Go through the original file and clean it up, then produce a nice list, consisting of pairs of theta and rho.
      *
      */
-    private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
-        val sequence: MutableList<Pair<Double, Double>> =
+    private fun parseSequence(lines: List<String>, regex: Regex): MutableList<ThetaRho> {
+        val sequence: MutableList<ThetaRho> =
 
             lines.map { it.trim() }
                 .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//") || it.startsWith("theta") }
@@ -179,7 +169,7 @@ object ShowTHR {
                     try {
                         val theta = parts[0].toDouble()
                         val rho = parts[1].toDouble()
-                        Pair(theta, rho)
+                        ThetaRho(theta, rho)
                     } catch (e: Exception) {
                         println("Error parsing sequence: ${e.message}: theta=${parts[0]}, rho=${parts[1]}")
                         throw e
@@ -219,9 +209,9 @@ object ShowTHR {
      * The problem is that the app will draw straight lines in x,y space between two points - and when you only have a change in theta, it draws a straight line instead of
      * the curve that it should be.  So, for any case where theta changes but rho does not, we need to expand the sequence with many intermediate points to fake the curve.
      */
-    fun expandSequence(sequence: List<Pair<Double, Double>>): MutableList<Pair<Double, Double>> {
+    fun expandSequence(sequence: List<ThetaRho>): MutableList<ThetaRho> {
         if (settings.shouldExpandSequences) {
-            val newSequence = mutableListOf<Pair<Double, Double>>()
+            val newSequence = mutableListOf<ThetaRho>()
             for (i in 0..<sequence.size - 1) {
                 val (theta1, rho1) = sequence[i]
                 val (theta2, rho2) = sequence[i + 1]
@@ -234,7 +224,7 @@ object ShowTHR {
                     val rhoDiff = rho2 - rho1
                     val numPoints = max(1, abs(thetaDiff / .01).toInt())
                     if (numPoints == 1) { // special case to prevent division by zero below
-                        newSequence.add(Pair(theta1, rho1))
+                        newSequence.add(ThetaRho(theta1, rho1))
                     }
                     else {
                         val deltaRho = rhoDiff / (numPoints - 1)
@@ -243,12 +233,12 @@ object ShowTHR {
                         (0..<numPoints).forEach { j ->
                             val newTheta = theta1 + deltaTheta * j
                             val newRho = rho1 + deltaRho * j
-                            newSequence.add(Pair(newTheta, newRho))
+                            newSequence.add(ThetaRho(newTheta, newRho))
                         }
                     }
                 }
                 //                }
-                else newSequence.add(Pair(theta1, rho1))
+                else newSequence.add(ThetaRho(theta1, rho1))
             }
             if (sequence.isNotEmpty()) newSequence.add(sequence.last())
             return newSequence

@@ -1,12 +1,15 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Utilities.Companion.calculateX
+import com.marginallyclever.showthr.Utilities.Companion.calculateY
+import com.marginallyclever.showthr.Utilities.Companion.getBall2Theta
+import com.marginallyclever.showthr.Utilities.Companion.getBall2ThetaRho
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
-import java.lang.Math.PI
+import java.io.IOException
 import javax.imageio.ImageIO
-import javax.vecmath.Vector2d
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -18,19 +21,16 @@ class SandSimulation(val settings: Settings) {
 
     private val sandGrid = Array(settings.tableDiameter) { DoubleArray(settings.tableDiameter) } // 2D array for sand density
     private val ball = Ball("Ball_1", settings.ballRadius, settings)
-    private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball
-    private lateinit var startPosition: Vector2d
-    private lateinit var startPosition2: Vector2d
+    private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball, slightly smaller than the first
+    private lateinit var startPosition: ThetaRho
+    private lateinit var startPosition2: ThetaRho
     private var imageFrame: ImageFrame? = null
-
-    var bufferedImage: BufferedImage
-//    val ballRelaxedMargin = (ball.radius * settings.RELAX_MARGIN).toInt()
-//    val ball2RelaxedMargin = (ball2.radius * settings.RELAX_MARGIN).toInt()
+    private var bufferedImage: BufferedImage
 
     init {
-        ball.setPositionThetaRho(0.0, 0.0)
+        ball.setPositionThetaRho(ThetaRho(0.0, 0.0))
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(PI, 1.0)
+            ball2.setPositionThetaRho(ThetaRho(getBall2Theta(ball.position.theta), 1.0))
         }
 
         // Initialize sand grid to uniform density
@@ -65,41 +65,37 @@ class SandSimulation(val settings: Settings) {
         // set the sand height to the image
         (0..<settings.tableDiameter).forEach { i ->
             (0..<settings.tableDiameter).forEach { j ->
-                val rgb = backgroundImage.getRGB(i, j)
-                val red: Int = (rgb and 0xff0000) shr 16
-                val newLevel = red.toDouble() / 30 // 30 seems to work...
+                val color = Color(backgroundImage.getRGB(i, j))
+                val newLevel = (color.red + color.green + color.blue).toDouble() / 3 / 30 // 30 seems to work...
                 sandGrid[i][j] = newLevel
             }
         }
         return backgroundImage
     }
 
-    fun setTarget(theta: Double, rho: Double) {
-        ball.setTargetThetaRho(theta, rho)
+    fun setTarget(thetaRho: ThetaRho) {
+        ball.setTargetThetaRho(thetaRho)
         startPosition = ball.position
         if (settings.useTwoBalls) {
-            ball2.setTargetThetaRho(getBall2Theta(theta), getBall2Rho(rho))
+            ball2.setTargetThetaRho(getBall2ThetaRho(thetaRho))
             startPosition2 = ball2.position // we need this for the relaxation step
         }
     }
 
-    fun setInitialBallPosition(theta: Double, rho: Double) {
-        ball.setPositionThetaRho(theta, rho)
-        ball.setTargetThetaRho(theta, rho)
+    fun setInitialBallPosition(thetaRho: ThetaRho) {
+        ball.setPositionThetaRho(thetaRho)
+        ball.setTargetThetaRho(thetaRho)
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(getBall2Theta(theta), getBall2Rho(rho))
-            ball2.setTargetThetaRho(getBall2Theta(theta), getBall2Rho(rho))
+            ball2.setPositionThetaRho(getBall2ThetaRho(thetaRho))
+            ball2.setTargetThetaRho(getBall2ThetaRho(thetaRho))
         }
     }
 
-    private fun getBall2Rho(rho: Double): Double = 1.0 - rho
-    private fun getBall2Theta(theta: Double): Double = theta + PI
-
-    fun update(deltaTime: Double) {
-        ball.updatePosition(deltaTime)
+    fun update() {
+        ball.updatePosition(settings.deltaTime)
         if (settings.useTwoBalls) {
-            ball2.updatePosition(deltaTime)
-//            println("Ball1: rho=${ball.getRho()}, Ball2: rho=${ball2.getRho()}")
+            ball2.updatePosition(settings.deltaTime)
+            //            println("Ball1: rho=${ball.getRho()}, Ball2: rho=${ball2.getRho()}")
         }
         makeBallPushSand() // push the sand up
         relaxSand() // let the sand settle
@@ -115,8 +111,10 @@ class SandSimulation(val settings: Settings) {
      */
     private fun makeBallPushSand(ball: Ball) {
         // Iterate over the area affected by the ball's radius
-        val ballX = ball.position.x.toInt()
-        val ballY = ball.position.y.toInt()
+        val ballX = Utilities.calculateX(ball.position, settings).toInt()
+        val ballY = Utilities.calculateY(ball.position, settings).toInt()
+        //        val ballX = ball.position.x.toInt()
+        //        val ballY = ball.position.y.toInt()
         val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
@@ -164,11 +162,11 @@ class SandSimulation(val settings: Settings) {
         if (settings.useTwoBalls) relaxSand(startPosition2, ball2)
     }
 
-    private fun relaxSand(startPosition: Vector2d, ball: Ball) {
-        var startX = startPosition.x.toInt()
-        var startY = startPosition.y.toInt()
-        var endX = ball.position.x.toInt()
-        var endY = ball.position.y.toInt()
+    private fun relaxSand(startPosition: ThetaRho, ball: Ball) {
+        var startX = calculateX(startPosition, settings).toInt()
+        var startY = calculateY(startPosition, settings).toInt()
+        var endX = calculateY(ball.position, settings).toInt()
+        var endY = calculateY(ball.position, settings).toInt()
 
         if (startX > endX) {
             val temp = startX
@@ -288,6 +286,17 @@ class SandSimulation(val settings: Settings) {
 
     fun ballAtTarget(): Boolean {
         return ball.atTarget
+    }
+
+    fun writeImage() {
+        try { // save the image to disk
+            val file = File(settings.outputFilename!!)
+            ImageIO.write(bufferedImage, settings.ext, file)
+            println("Image saved to " + file.absolutePath)
+        } catch (e: IOException) {
+            println("Error saving file " + settings.outputFilename + ": " + e.message)
+        }
+
     }
 }
 
