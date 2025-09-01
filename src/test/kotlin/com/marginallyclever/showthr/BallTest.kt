@@ -18,14 +18,14 @@ internal class BallTest {
     @Test
     fun `test getRho with position at origin`() {
         val ball = Ball("TestBall", 5, settings)
-        ball.setPositionThetaRho(0.0,0.0)
+        ball.setPosition(0.0, 0.0)
         assertEquals(0.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on positive X-axis`() {
         val ball = Ball("TestBall", 5, settings)
-        ball.setPositionThetaRho(0.0,1.0)
+        ball.setPosition(0.0, 1.0)
         val actual = ball.getRho()
         assertEquals(1.0, actual, 0.0001)
     }
@@ -33,63 +33,63 @@ internal class BallTest {
     @Test
     fun `test getRho with position on positive Y-axis`() {
         val ball = Ball("TestBall", 5, settings)
-        ball.setPositionThetaRho(Math.PI/2,1.0)
+        ball.setPosition(Math.PI / 2, 1.0)
         assertEquals(1.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on diagonal`() {
         val ball = Ball("TestBall", 5, settings)
-        ball.setPositionThetaRho(Math.PI/4,1.0)
+        ball.setPosition(Math.PI / 4, 1.0)
         assertEquals(1.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on negative X-axis`() {
         val ball = Ball("TestBall", 5, settings)
-        ball.setPositionThetaRho(Math.PI,1.0)
+        ball.setPosition(Math.PI, 1.0)
         assertEquals(1.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getRho with position on negative Y-axis`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.setPositionThetaRho(Math.PI*3/2,1.0)
+        ball.setPosition(Math.PI * 3 / 2, 1.0)
         assertEquals(10.0, ball.getRho(), 0.0001)
     }
 
     @Test
     fun `test getTheta with position at origin`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.setPositionThetaRho(0.0,1.0)
+        ball.setPosition(0.0, 1.0)
         assertEquals(0.0, ball.getTheta(), 0.0001) // Assuming 0.0 radians at origin
     }
 
     @Test
     fun `test getTheta with position on positive X-axis`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.setPositionThetaRho(0.0,1.0)
+        ball.setPosition(0.0, 1.0)
         assertEquals(0.0, ball.getTheta(), 0.0001) // 0 radians (or 0 degrees)
     }
 
     @Test
     fun `test getTheta with position on positive Y-axis`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.setPositionThetaRho(Math.PI/2,1.0)
+        ball.setPosition(Math.PI / 2, 1.0)
         assertEquals(Math.PI / 2, ball.getTheta(), 0.0001) // Pi/2 radians (90 degrees)
     }
 
     @Test
     fun `test getTheta with position on negative X-axis`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.setPositionThetaRho(Math.PI,1.0)
+        ball.setPosition(Math.PI, 1.0)
         assertEquals(Math.PI, ball.getTheta(), 0.0001) // Pi radians (180 degrees)
     }
 
     @Test
     fun `test getTheta with position on negative Y-axis`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.setPositionThetaRho(Math.PI*3/2,1.0)
+        ball.setPosition(Math.PI * 3 / 2, 1.0)
         assertEquals(-Math.PI / 2, ball.getTheta(), 0.0001) // -Pi/2 radians (-90 degrees)
     }
 

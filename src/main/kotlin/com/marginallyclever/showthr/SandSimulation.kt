@@ -16,6 +16,10 @@ import kotlin.math.sqrt
 
 /**
  * A simulation of loose sand on a table and being displaced by a ball.
+ *
+ * Note that although the ball is tracked with polar coordinates (rho, theta), the table and resulting image are rendered with Cartesian coordinates.  By
+ * converting late like this, the 2nd ball tracking is trivial, else it'd have to be converted to x,y, and back again.
+ *
  */
 class SandSimulation(val settings: Settings) {
 
@@ -28,9 +32,9 @@ class SandSimulation(val settings: Settings) {
     private var bufferedImage: BufferedImage
 
     init {
-        ball.setPositionThetaRho(ThetaRho(0.0, 0.0))
+        ball.setPosition(ThetaRho(0.0, 0.0))
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(ThetaRho(getBall2Theta(ball.position.theta), 1.0))
+            ball2.setPosition(ThetaRho(getBall2Theta(ball.position.theta), 1.0))
         }
 
         // Initialize sand grid to uniform density
@@ -53,12 +57,13 @@ class SandSimulation(val settings: Settings) {
     }
 
     /**
-    Read in a pre-generated image of a "clean" cycle as a starting point for the sand.
+     *
+     *  Read in a pre-generated image of a "clean" cycle as a starting point for the sand.
 
-    Just for reference...
-    int red = (rgb>>16)&0x0ff;
-    int green=(rgb>>8) &0x0ff;
-    int blue= (rgb)    &0x0ff;
+     *  Just for reference...
+     *  int red = (rgb>>16)&0x0ff;
+     *  int green=(rgb>>8) &0x0ff;
+     *  int blue= (rgb)    &0x0ff;
      */
     private fun readInCleanedImage(cleanFile: File): BufferedImage {
         val backgroundImage = ImageIO.read(cleanFile)
@@ -74,20 +79,20 @@ class SandSimulation(val settings: Settings) {
     }
 
     fun setTarget(thetaRho: ThetaRho) {
-        ball.setTargetThetaRho(thetaRho)
+        ball.setTarget(thetaRho)
         startPosition = ball.position
         if (settings.useTwoBalls) {
-            ball2.setTargetThetaRho(getBall2ThetaRho(thetaRho))
+            ball2.setTarget(getBall2ThetaRho(thetaRho))
             startPosition2 = ball2.position // we need this for the relaxation step
         }
     }
 
     fun setInitialBallPosition(thetaRho: ThetaRho) {
-        ball.setPositionThetaRho(thetaRho)
-        ball.setTargetThetaRho(thetaRho)
+        ball.setPosition(thetaRho)
+        ball.setTarget(thetaRho)
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(getBall2ThetaRho(thetaRho))
-            ball2.setTargetThetaRho(getBall2ThetaRho(thetaRho))
+            ball2.setPosition(getBall2ThetaRho(thetaRho))
+            ball2.setTarget(getBall2ThetaRho(thetaRho))
         }
     }
 
@@ -111,10 +116,8 @@ class SandSimulation(val settings: Settings) {
      */
     private fun makeBallPushSand(ball: Ball) {
         // Iterate over the area affected by the ball's radius
-        val ballX = Utilities.calculateX(ball.position, settings).toInt()
-        val ballY = Utilities.calculateY(ball.position, settings).toInt()
-        //        val ballX = ball.position.x.toInt()
-        //        val ballY = ball.position.y.toInt()
+        val ballX = calculateX(ball.position, settings).toInt()
+        val ballY = calculateY(ball.position, settings).toInt()
         val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
@@ -246,13 +249,14 @@ class SandSimulation(val settings: Settings) {
      */
     fun renderSandImage(): BufferedImage {
         var max = 8.5 // setting max dynamically makes the animation flicker - setting it to a constant 8.5 seems acceptable.
-        //        for (i in 0..<tableWidth) {
-        //            for (j in 0..<tableHeight) {
-        //                max = max(max, sandGrid[i][j])
-        //            }
-        //        }
-        //        println("max = ${max}")
-
+        if (settings.isHeadless) {
+            for (i in 0..<settings.tableDiameter) {
+                for (j in 0..<settings.tableDiameter) {
+                    max = max(max, sandGrid[i][j])
+                }
+            }
+            println("max = ${max}")
+        }
         for (i in 0..<settings.tableDiameter) {
             for (j in 0..<settings.tableDiameter) {
                 val gray = minOf(255, (sandGrid[i][j] * 30).toInt()) // Simplified calculation
@@ -272,7 +276,6 @@ class SandSimulation(val settings: Settings) {
      */
     private fun encode32bit(greyscale: Int): Int {
         var newGreyscale = greyscale
-        newGreyscale = newGreyscale and 0xff
         val red: Int = (newGreyscale * settings.redConversion).toInt()
         val green: Int = (newGreyscale * settings.greenConversion).toInt()
         val blue: Int = (newGreyscale * settings.blueConversion).toInt()

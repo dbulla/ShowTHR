@@ -1,11 +1,6 @@
 package com.marginallyclever.showthr
 
 import com.marginallyclever.showthr.Utilities.Companion.calculateDistanceRhoTheta
-import com.marginallyclever.showthr.Utilities.Companion.calculateRho
-import com.marginallyclever.showthr.Utilities.Companion.calculateTheta
-import com.marginallyclever.showthr.Utilities.Companion.calculateX
-import com.marginallyclever.showthr.Utilities.Companion.calculateY
-import javax.vecmath.Vector2d
 
 // Ball class for handling ball movement and position
 internal class Ball(val name: String, val radius: Int, val settings: Settings) {
@@ -15,27 +10,11 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
     var atTarget: Boolean = false
     val ballRelaxedMargin = (radius * settings.RELAX_MARGIN).toInt()
 
-    fun setPositionThetaRho(thetaRho: ThetaRho) {
+    fun setPosition(thetaRho: ThetaRho) {
         this.position = thetaRho
-        //        position.x = calculateX(theta, rho, settings)
-        //        position.y = calculateY(theta, rho, settings)
-        //        println("$name rho: $rho")
     }
 
-    //    fun setTargetXY(x: Double, y: Double) {
-    //        target[x] = y
-    //        val diff = Vector2d(target)
-    //        diff.sub(position)
-    //        atTarget = diff.lengthSquared() < 0.1
-    //    }
-
-    fun setTargetThetaRho(thetaRho: ThetaRho) {
-        //        val x = calculateX(theta, rho, settings)
-        //        val y = calculateY(theta, rho, settings)
-        //        target[x] = y
-        //        val diff = Vector2d(target)
-        //        diff.sub(position)
-        //        atTarget = diff.lengthSquared() < 0.1
+    fun setTarget(thetaRho: ThetaRho) {
         target = thetaRho
         val distance = calculateDistanceRhoTheta(position, target)
         atTarget = distance < .001
@@ -87,11 +66,6 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
     }
 
     override fun toString(): String {
-        //        val rho = calculateRho(position.x.toInt(), position.y.toInt(), settings)
-        //        val theta = calculateTheta(position.x.toInt(), position.y.toInt(), settings)
-        //        val targetRho = calculateRho(target.x.toInt(), target.y.toInt(), settings)
-        //        val targetTheta = calculateTheta(target.x.toInt(), target.y.toInt(), settings)
-        //        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
         return "Ball(name='$name',  Position:($position),  target:($target), speed=$speed, atTarget=$atTarget)"
     }
 }

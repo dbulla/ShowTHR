@@ -93,7 +93,7 @@ object ShowTHR {
         var previousPercentage = 0.0
         val startTime = Clock.System.now()
 
-        val expandedSequence = extractRhoThetaPairs(file)
+        val expandedSequence = extractThetaRhoPairs(file)
         if (expandedSequence.isEmpty()) return
         val numLines = expandedSequence.size
 
@@ -102,12 +102,12 @@ object ShowTHR {
 
         expandedSequence.forEachIndexed { index, it ->
 //            println("Processing line $index of $numLines")
-            previousPercentage = moveToNextRhoTheta(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
+            previousPercentage = moveToNextThetaRho(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
         }
     }
 
     @OptIn(ExperimentalTime::class)
-    private fun moveToNextRhoTheta(
+    private fun moveToNextThetaRho(
         thetaRho: ThetaRho,
         sandSimulation: SandSimulation,
         index: Int,
@@ -136,7 +136,7 @@ object ShowTHR {
         return newPreviousPercentage
     }
 
-    private fun extractRhoThetaPairs(file: File): MutableList<ThetaRho> {
+    private fun extractThetaRhoPairs(file: File): MutableList<ThetaRho> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
             settings.isGenerateCleanBackdrop -> createCleaningTrack()
@@ -279,7 +279,6 @@ object ShowTHR {
                     val timeRemainingMs = (numLines * durationMs / index) - durationMs
                     Duration.ofMillis(timeRemainingMs).toString()
                 }
-
                 else      -> "?"
             }
             stringBuilder.append("$shortFilename    $percent    Duration: $duration    timeRemaining: $timeRemaining")

@@ -17,13 +17,12 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
 
         val mainPanel = JPanel(BorderLayout())
         val backgroundColor = bufferedImage.getRGB(0, 0)
+        val scrollPane = JScrollPane(imagePanel)
 
         mainPanel.background = Color(backgroundColor)
-
-
-        val scrollPane = JScrollPane(imagePanel)
         mainPanel.add(scrollPane, BorderLayout.CENTER)
         add(mainPanel, BorderLayout.CENTER)
+
         imagePanel.updateImage(bufferedImage)
         imagePanel.preferredSize = Dimension(settings.tableDiameter, settings.tableDiameter)
         imagePanel.size=imagePanel.preferredSize

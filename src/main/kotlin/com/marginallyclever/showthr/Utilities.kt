@@ -9,13 +9,6 @@ import kotlin.math.sqrt
 class Utilities {
     companion object {
 
-        //        fun calculateY(theta: Double, rho: Double, settings: Settings): Double {
-        //            val centerY = settings.centerY
-        //            val cos = cos(theta)
-        //            val newYOffset = cos * rho * settings.maxRadius
-        //            val newY = centerY + newYOffset
-        //            return newY
-        //        }
         fun calculateY(thetaRho: ThetaRho, settings: Settings): Double {
             val centerY = settings.centerY
             val cos = cos(thetaRho.theta)
@@ -24,13 +17,6 @@ class Utilities {
             return newY
         }
 
-        //        fun calculateX(theta: Double, rho: Double, settings: Settings): Double {
-        //            val centerX = settings.centerX
-        //            val sin = sin(theta)
-        //            val newXOffset = sin * rho * settings.maxRadius
-        //            val newX = centerX + newXOffset
-        //            return newX
-        //        }
         fun calculateX(thetaRho: ThetaRho, settings: Settings): Double {
             val centerX = settings.centerX
             val sin = sin(thetaRho.theta)
@@ -73,9 +59,11 @@ class Utilities {
             return ThetaRho(newTheta, newRho)
         }
 
-        /** Calculates the distance between two points in theta, rho coordinate space. */
+        /**
+         * Calculates the distance between two points in theta, rho coordinate space.
+         *   d = √(r₁² + r₂² - 2r₁r₂ cos(θ₂ - θ₁))
+         */
         fun calculateDistanceRhoTheta(position1: ThetaRho, position2: ThetaRho): Double {
-            //            d = √(r₁² + r₂² - 2r₁r₂ cos(θ₂ - θ₁))
             val distance = sqrt((position1.rho * position1.rho + position2.rho * position2.rho - 2 * position1.rho * position2.rho * cos(position2.theta - position1.theta)))
             return distance
         }
