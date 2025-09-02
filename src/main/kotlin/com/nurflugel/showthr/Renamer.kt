@@ -1,6 +1,6 @@
 package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.io.File
 
 /** This class will rename all the files in a directory to have a number prefix.
@@ -44,7 +44,7 @@ object Renamer {
             .sortedBy { it.name }
             .mapIndexed { index, s -> index to s } // make a list of pairs, consisting of the index number and the file
             .forEach {
-                val paddedNumber = it.first.toString().padStart(5, '0')
+                val paddedNumber = it.first.toString().padStart(6, '0')
                 // figure out the new filename
                 val newImageName = "images_${paddedNumber}.png"
                 val renamedImageFile = File(targetDirectory, newImageName)

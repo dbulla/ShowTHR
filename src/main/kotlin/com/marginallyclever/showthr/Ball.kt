@@ -1,7 +1,9 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.RELAX_MARGIN
-import com.marginallyclever.showthr.Utilities.Companion.calculateDistanceRhoTheta
+import com.nurflugel.showthr.Settings.Companion.RELAX_MARGIN
+import com.nurflugel.showthr.Utilities.Companion.calculateDistanceRhoTheta
+import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.ThetaRho
 
 // Ball class for handling ball movement and position
 internal class Ball(val name: String, val radius: Int, val settings: Settings) {
@@ -19,7 +21,6 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
         target = thetaRho
         val distance = calculateDistanceRhoTheta(position, target)
         atTarget = distance < .001
-
     }
 
     /**
@@ -50,20 +51,10 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
         //        val distance = calculateDistanceRhoTheta(position, target)
         val deltaTheta = speed * deltaTime * (target.theta - position.theta)
         val deltaRho = speed * deltaTime * (target.rho - position.rho)
-        position = ThetaRho(position.theta + deltaTheta,position.rho + deltaRho )
+        position = ThetaRho(position.theta + deltaTheta, position.rho + deltaRho)
         val distance = calculateDistanceRhoTheta(position, target)
         atTarget = distance < 0.01
 //        println("position: $position, distance: $distance  ")
-    }
-
-    fun getRho(): Double {
-        //        return calculateRho(position.x.toInt(), position.y.toInt(), settings)
-        return position.rho
-    }
-
-    fun getTheta(): Double {
-        //        return calculateTheta(position.x.toInt(), position.y.toInt(), settings)
-        return position.theta
     }
 
     override fun toString(): String {

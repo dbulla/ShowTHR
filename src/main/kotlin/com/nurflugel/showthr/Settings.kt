@@ -1,6 +1,6 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
 
@@ -16,6 +16,7 @@ class Settings {
         const val BLUE_CONVERSION = 200 / 255.0
     }
 
+    var makeAnimation: Boolean = false
     var useTwoBalls = false
 
     var ballRadius: Int = 5
@@ -100,14 +101,21 @@ class Settings {
         }
         var index = 0
         while (index < args.size) {
-            when (args[index].lowercase()) { // use lowercase, so if they get it wrong, it still works.
+            val argument = args[index].lowercase()
+            when (argument) { // use lowercase, so if they get it wrong, it still works.
                 // mandatory arguments
                 "-i"                 -> inputFilename = args[++index]
                 // Optional arguments with args and default values
                 "-background"        -> backgroundImageName = setValueFromArg(++index, args)
                 "-ballradius"        -> ballRadius = setValueFromArg(++index, args).toInt()
                 "-batchtrackfile"    -> batchTrackFile = setValueFromArg(++index, args)
-                "-batchtracks"       -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
+                "-batchtracks"       -> {
+                    val fileNames = setValueFromArg(++index, args)
+                        .split(",")
+                        .map { it.trim() }
+                        .map { if (it.endsWith(".thr")) it else "$it.thr" }
+                    batchTracks.addAll(fileNames)
+                }
                 "-depth"             -> initialSandDepth = setValueFromArg(++index, args).toDouble()
                 "-o"                 -> outputFilename = setValueFromArg(++index, args)
                 "-skip"              -> imageSkipCount = setValueFromArg(++index, args).toInt()
@@ -119,11 +127,12 @@ class Settings {
                 "-expandtracks"      -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
                 "-gray"              -> useGreyBackground = true
                 "-headless"          -> isHeadless = true
+                "-makeanimation"     -> makeAnimation = true
                 "-makecleanbackdrop" -> isGenerateCleanBackdrop = true
                 "-q"                 -> shouldQuitWhenDone = true
                 "-reversed"          -> isReversed = true
                 else                 -> {
-                    println("Unknown option " + args[index])
+                    println("Unknown option $argument")
                     printHelp()
                     return false
                 }
@@ -135,28 +144,24 @@ class Settings {
 
     // print the settings
     fun printSettings() {
-        println("ShowTHR Settings")
-        println("   Mandatory arguments requiring values:")
-        println("       -i inputFilename = $inputFilename")
-
-        println("   Optional arguments requiring values:")
-        println("       -background =       $backgroundImageName")
-        println("       -ballRadius =       $ballRadius ")
-        println("       -batchTrackFile =   $batchTrackFile")
-        println("       -batchTracks =      $batchTracks")
-        println("       -depth =            $initialSandDepth")
-        println("       -o =                $outputFilename")
-        println("       -skip =             $imageSkipCount")
-        println("       -tableSize =        $tableDiameter")
-        println("   Optional no-value arguments:")
-        println("       -2balls =           $useTwoBalls")
-        println("       -doClean =          $cleanBeforeRendering")
-        println("       -expandTracks  =    $shouldExpandSequences")
-        println("       -gray =             $useGreyBackground")
-        println("       -headless =         $isHeadless ")
-        println("       -makeCleanBackdrop = $isGenerateCleanBackdrop")
-        println("       -q  =               $shouldQuitWhenDone")
-        println("       -reversed =         $isReversed")
+        println("       -i inputFilename =      $inputFilename")
+        println("       -background =           $backgroundImageName")
+        println("       -ballRadius =           $ballRadius ")
+        println("       -batchTrackFile =       $batchTrackFile")
+        println("       -batchTracks =          $batchTracks")
+        println("       -depth =                $initialSandDepth")
+        println("       -o =                    $outputFilename")
+        println("       -skip =                 $imageSkipCount")
+        println("       -tableSize =            $tableDiameter")
+        println("       -2balls =               $useTwoBalls")
+        println("       -doClean =              $cleanBeforeRendering")
+        println("       -expandTracks  =        $shouldExpandSequences")
+        println("       -gray =                 $useGreyBackground")
+        println("       -headless =             $isHeadless ")
+        println("       -makeCleanBackdrop =    $isGenerateCleanBackdrop")
+        println("       -makeAnimation =        $makeAnimation")
+        println("       -q  =                   $shouldQuitWhenDone")
+        println("       -reversed =             $isReversed")
     }
 
     fun printHelp() {
@@ -179,7 +184,8 @@ class Settings {
         println("       -expandTracks       Expand sequences of points to improve rendering quality")
         println("       -gray               Use a grey background instead of the image background")
         println("       -headless           No GUI, just render the image - this works on devices with no display")
-        println("       -makeCleanBackdrop  If present, make a backdrop image of clean sand for use in future renderings")
+        println("       -makeAnimation      Make animation frames of the images - you can run ffmpeg to create a video.  Dir is 'animationImages'")
+        println("       -makeCleanBackdrop  Make a backdrop image of clean sand for use in future renderings")
         println("       -q                  Quit after rendering the image")
         println("       -reversed           Render the tracks in reverse order")
     }

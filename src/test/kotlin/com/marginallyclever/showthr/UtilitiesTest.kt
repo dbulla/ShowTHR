@@ -1,7 +1,8 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Utilities.Companion.getBall2Rho
-import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities
+import com.nurflugel.showthr.Utilities.Companion.getBall2Rho
+import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.lang.Math.PI
 import kotlin.test.Test
 import kotlin.test.assertEquals

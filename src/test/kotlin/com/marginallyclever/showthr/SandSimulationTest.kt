@@ -1,5 +1,7 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.ThetaRho
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -40,10 +42,11 @@ class SandSimulationTest {
             sandSimulation.update()
             if (sandSimulation.ballAtTarget()) {
                 val r = Math.toRadians(a)
-                sandSimulation.setTarget(ThetaRho(
-                    settings.tableRadius + cos(r) * d,
-                    settings.tableRadius + sin(r) * d
-                )
+                sandSimulation.setTarget(
+                    ThetaRho(
+                        settings.tableRadius + cos(r) * d,
+                        settings.tableRadius + sin(r) * d
+                    )
                 )
                 d = ((settings.tableDiameter - 40) / 2.0) - (a / 360.0) * 10
                 a += 5.0
@@ -72,7 +75,7 @@ class SandSimulationTest {
         settings.calculateCenter()
         val sandSimulation = SandSimulation(settings)
         val showThr = ShowTHR
-        showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation)
+        showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation, counter)
 
         val image = sandSimulation.renderSandImage()
         // save the image to disk

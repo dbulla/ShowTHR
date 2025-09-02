@@ -9,7 +9,7 @@
 - [ ] Make the image sized "fixed" - or at least keep it's aspect ratio when scaled up
 - [x] Rename options and document nicely
 - [ ] Batch tracks
-  - [ ] Fix it so it doesn't have to be the last option
+  - [x] Fix it so it doesn't have to be the last option
   
   - [ ]  Make a batch file version 
     - [ ] Not just a list of tracks, add commands 
@@ -24,10 +24,10 @@
         - [ ] Reversed
         - [ ] Skip Count
   
-- [ ] Make animation option
-  - [ ] Takes the images that are drawn and saves them to a dir after displaying
-  - [ ] Optional - wrap FFMPEG and create the animation 
-    - [ ] Windows will suck
+- [x] Make animation option
+  - [x] Takes the images that are drawn and saves them to a dir after displaying
+  - [x] Optional - wrap FFMPEG and create the animation 
+    - [x] Windows will suck
 
 - [ ] Show duration from previous status output
 

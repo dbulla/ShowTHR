@@ -1,4 +1,4 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
 import java.lang.Math.PI
 import kotlin.math.atan2
@@ -47,7 +47,7 @@ class Utilities {
         fun calculateTheta(x: Int, y: Int, settings: Settings): Double {
             val actualX = x - settings.centerX
             val actualY = y - settings.centerY
-            val theta = atan2(actualY.toDouble(), actualX.toDouble()) * 180 / Math.PI
+            val theta = atan2(actualY.toDouble(), actualX.toDouble()) * 180 / PI
             return theta
         }
 

@@ -1,14 +1,17 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Settings.Companion.MAX_SLOPE
-import com.marginallyclever.showthr.Settings.Companion.REDISTRIBUTION_RATE
-import com.marginallyclever.showthr.Settings.Companion.BLUE_CONVERSION
-import com.marginallyclever.showthr.Settings.Companion.GREEN_CONVERSION
-import com.marginallyclever.showthr.Settings.Companion.RED_CONVERSION
-import com.marginallyclever.showthr.Utilities.Companion.calculateX
-import com.marginallyclever.showthr.Utilities.Companion.calculateY
-import com.marginallyclever.showthr.Utilities.Companion.getBall2Theta
-import com.marginallyclever.showthr.Utilities.Companion.getBall2ThetaRho
+import com.nurflugel.showthr.Settings.Companion.MAX_SLOPE
+import com.nurflugel.showthr.Settings.Companion.REDISTRIBUTION_RATE
+import com.nurflugel.showthr.Settings.Companion.BLUE_CONVERSION
+import com.nurflugel.showthr.Settings.Companion.GREEN_CONVERSION
+import com.nurflugel.showthr.Settings.Companion.RED_CONVERSION
+import com.nurflugel.showthr.Utilities.Companion.calculateX
+import com.nurflugel.showthr.Utilities.Companion.calculateY
+import com.nurflugel.showthr.Utilities.Companion.getBall2Theta
+import com.nurflugel.showthr.Utilities.Companion.getBall2ThetaRho
+import com.nurflugel.showthr.ImageFrame
+import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.ThetaRho
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -260,7 +263,7 @@ class SandSimulation(val settings: Settings) {
                     max = max(max, sandGrid[i][j])
                 }
             }
-//            println("max = ${max}")
+            //            println("max = ${max}")
         }
         for (i in 0..<settings.tableDiameter) {
             for (j in 0..<settings.tableDiameter) {
@@ -296,10 +299,15 @@ class SandSimulation(val settings: Settings) {
     }
 
     fun writeImage() {
+        val file = File(settings.outputFilename!!)
+        writeImage(file, bufferedImage)
+        println("Image saved to " + file.absolutePath)
+    }
+
+    fun writeImage(file: File, image: BufferedImage) {
         try { // save the image to disk
-            val file = File(settings.outputFilename!!)
-            ImageIO.write(bufferedImage, settings.ext, file)
-            println("Image saved to " + file.absolutePath)
+            ImageIO.write(image, settings.ext, file)
+
         } catch (e: IOException) {
             println("Error saving file " + settings.outputFilename + ": " + e.message)
         }
