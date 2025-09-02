@@ -7,11 +7,11 @@
 - [ ] All of the track isn't being drawn - skip?
 - [ ] Brighter sand
 - [ ] Make the image sized "fixed" - or at least keep it's aspect ratio when scaled up
-- [ ] Rename options and document nicely
+- [x] Rename options and document nicely
 - [ ] Batch tracks
   - [ ] Fix it so it doesn't have to be the last option
   
-  - [ ]  - make a batch file version 
+  - [ ]  Make a batch file version 
     - [ ] Not just a list of tracks, add commands 
       - [ ] At startup
         - [ ] Table size

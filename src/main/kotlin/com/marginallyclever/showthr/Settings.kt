@@ -6,14 +6,14 @@ import javax.imageio.ImageIO
 
 class Settings {
     companion object {
-     const  val MAX_SLOPE = 1.0 // Threshold for sand redistribution
-     const  val REDISTRIBUTION_RATE = 0.5 // Amount of sand transferred per step
-     const  val RELAX_MARGIN = 4.0 // must be at greater than 1.
-     const  val PROGRESS_THRESHOLD = 4.0
-     const  val NUMBER_OF_TURNS_TO_CLEAN = 200
-     const  val RED_CONVERSION = 255 / 255.0
-     const  val GREEN_CONVERSION = 244 / 255.0
-     const  val BLUE_CONVERSION = 200 / 255.0
+        const val MAX_SLOPE = 1.0 // Threshold for sand redistribution
+        const val REDISTRIBUTION_RATE = 0.5 // Amount of sand transferred per step
+        const val RELAX_MARGIN = 4.0 // must be at greater than 1.
+        const val PROGRESS_THRESHOLD = 4.0
+        const val NUMBER_OF_TURNS_TO_CLEAN = 200
+        const val RED_CONVERSION = 255 / 255.0
+        const val GREEN_CONVERSION = 244 / 255.0
+        const val BLUE_CONVERSION = 200 / 255.0
     }
 
     var useTwoBalls = false
@@ -52,14 +52,15 @@ class Settings {
     fun parseInputs(args: Array<String>): Boolean {
 
         try {
-            getSettingsFromArgs(args)
+            if (getSettingsFromArgs(args)) {
+                adjustSettings()
+                calculateCenter()
+                return true
+            }
         } catch (e: Exception) {
             println("Problem parsing arguments ${e.message}")
-            return false
         }
-        adjustSettings()
-        calculateCenter()
-        return true
+        return false
     }
 
     private fun adjustSettings() {
