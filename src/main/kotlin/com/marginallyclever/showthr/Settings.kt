@@ -5,13 +5,17 @@ import java.awt.Toolkit
 import javax.imageio.ImageIO
 
 class Settings {
-    //    companion object {
-    val MAX_SLOPE = 1.0 // Threshold for sand redistribution
-    val REDISTRIBUTION_RATE = 0.5 // Amount of sand transferred per step
-    val RELAX_MARGIN = 4.0 // must be at greater than 1.
-    val PROGRESS_THRESHOLD = 4.0
-    var shouldExpandSequences = true
-    val NUMBER_OF_TURNS_TO_CLEAN = 200
+    companion object {
+     const  val MAX_SLOPE = 1.0 // Threshold for sand redistribution
+     const  val REDISTRIBUTION_RATE = 0.5 // Amount of sand transferred per step
+     const  val RELAX_MARGIN = 4.0 // must be at greater than 1.
+     const  val PROGRESS_THRESHOLD = 4.0
+     const  val NUMBER_OF_TURNS_TO_CLEAN = 200
+     const  val RED_CONVERSION = 255 / 255.0
+     const  val GREEN_CONVERSION = 244 / 255.0
+     const  val BLUE_CONVERSION = 200 / 255.0
+    }
+
     var useTwoBalls = false
 
     var ballRadius: Int = 5
@@ -24,7 +28,7 @@ class Settings {
     var imageSkipCount = 4
     var inputFilename: String? = null
     var outputFilename: String? = null
-
+    var shouldExpandSequences = true
     var tableDiameter = 100
     var tableRadius = 0
     var centerX = 0
@@ -32,12 +36,10 @@ class Settings {
 
     lateinit var ext: String
     var useGreyBackground = false
-    val redConversion = 255 / 255.0
-    val greenConversion = 244 / 255.0
-    val blueConversion = 200 / 255.0
+
     var isHeadless = false
     var maxRadius = tableRadius - 20
-    val deltaTime = 0.2
+    val deltaTime = 0.2 // todo possibly add this to settings
     val batchTracks: MutableList<String> = mutableListOf()
     var batchTrackFile: String? = null
 
@@ -99,27 +101,27 @@ class Settings {
         while (index < args.size) {
             when (args[index].lowercase()) { // use lowercase, so if they get it wrong, it still works.
                 // mandatory arguments
-                "-i"              -> inputFilename = args[++index]
+                "-i"                 -> inputFilename = args[++index]
                 // Optional arguments with args and default values
-                "-background"     -> backgroundImageName = setValueFromArg(++index, args)
-                "-ballradius"     -> ballRadius = setValueFromArg(++index, args).toInt()
-                "-batchtrackfile" -> batchTrackFile = setValueFromArg(++index, args)
-                "-batchtracks"    -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
-                "-depth"          -> initialSandDepth = setValueFromArg(++index, args).toDouble()
-                "-o"              -> outputFilename = setValueFromArg(++index, args)
-                "-skip"           -> imageSkipCount = setValueFromArg(++index, args).toInt()
-                "-tablesize"      -> tableDiameter = setValueFromArg(++index, args).toInt()
+                "-background"        -> backgroundImageName = setValueFromArg(++index, args)
+                "-ballradius"        -> ballRadius = setValueFromArg(++index, args).toInt()
+                "-batchtrackfile"    -> batchTrackFile = setValueFromArg(++index, args)
+                "-batchtracks"       -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
+                "-depth"             -> initialSandDepth = setValueFromArg(++index, args).toDouble()
+                "-o"                 -> outputFilename = setValueFromArg(++index, args)
+                "-skip"              -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                "-tablesize"         -> tableDiameter = setValueFromArg(++index, args).toInt()
 
                 // Optional no-value arguments
-                "-2balls"         -> useTwoBalls = true
-                "-doclean"        -> cleanBeforeRendering = false
-                "-expandtracks"   -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                "-gray"           -> useGreyBackground = true
-                "-headless"       -> isHeadless = true
-                "-makecleanbackdrop"              -> isGenerateCleanBackdrop = true
-                "-q"              -> shouldQuitWhenDone = true
-                "-reversed"       -> isReversed = true
-                else              -> {
+                "-2balls"            -> useTwoBalls = true
+                "-doclean"           -> cleanBeforeRendering = false
+                "-expandtracks"      -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                "-gray"              -> useGreyBackground = true
+                "-headless"          -> isHeadless = true
+                "-makecleanbackdrop" -> isGenerateCleanBackdrop = true
+                "-q"                 -> shouldQuitWhenDone = true
+                "-reversed"          -> isReversed = true
+                else                 -> {
                     println("Unknown option " + args[index])
                     printHelp()
                     return false

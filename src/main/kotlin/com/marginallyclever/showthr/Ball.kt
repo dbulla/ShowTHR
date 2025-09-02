@@ -1,5 +1,6 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Settings.Companion.RELAX_MARGIN
 import com.marginallyclever.showthr.Utilities.Companion.calculateDistanceRhoTheta
 
 // Ball class for handling ball movement and position
@@ -8,7 +9,7 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
     private var target: ThetaRho = ThetaRho(0.0, 0.0)
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false
-    val ballRelaxedMargin = (radius * settings.RELAX_MARGIN).toInt()
+    val ballRelaxedMargin = (radius * RELAX_MARGIN).toInt()
 
     fun setPosition(thetaRho: ThetaRho) {
         this.position = thetaRho

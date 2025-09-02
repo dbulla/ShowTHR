@@ -33,16 +33,17 @@ class SandSimulationTest {
     @Throws(IOException::class)
     fun testSandSimulationSpiral() {
         val sandSimulation = SandSimulation(settings)
-        sandSimulation.setTarget(100.0, 100.0)
+        sandSimulation.setTarget(ThetaRho(100.0, 100.0))
         var d = (settings.tableDiameter - 40) / 2.0
         var a = 0.0
         for (i in 0..9999) {
             sandSimulation.update()
             if (sandSimulation.ballAtTarget()) {
                 val r = Math.toRadians(a)
-                sandSimulation.setTarget(
+                sandSimulation.setTarget(ThetaRho(
                     settings.tableRadius + cos(r) * d,
                     settings.tableRadius + sin(r) * d
+                )
                 )
                 d = ((settings.tableDiameter - 40) / 2.0) - (a / 360.0) * 10
                 a += 5.0

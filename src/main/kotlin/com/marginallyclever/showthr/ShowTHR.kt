@@ -1,5 +1,7 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Settings.Companion.NUMBER_OF_TURNS_TO_CLEAN
+import com.marginallyclever.showthr.Settings.Companion.PROGRESS_THRESHOLD
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -199,8 +201,8 @@ object ShowTHR {
         //            return sequence
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
-        cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
-        cleaningTrack.add("${(settings.NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
+        cleaningTrack.add("${NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
+        cleaningTrack.add("${(NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
 
         return cleaningTrack
     }
@@ -264,9 +266,9 @@ object ShowTHR {
     ): Double {
         val percentageComplete = 100.0 * index / numLines
         val shouldPrint = when {
-            previousPercentageThreshold == 0.0                                             -> true
-            percentageComplete > previousPercentageThreshold + settings.PROGRESS_THRESHOLD -> true
-            else                                                                           -> false
+            previousPercentageThreshold == 0.0                                    -> true
+            percentageComplete > previousPercentageThreshold + PROGRESS_THRESHOLD -> true
+            else                                                                  -> false
         }
 
         if (shouldPrint) {
@@ -286,7 +288,7 @@ object ShowTHR {
 
             if (dots.isNotEmpty()) println(dots)
             stringBuilder.clear()
-            return previousPercentageThreshold + settings.PROGRESS_THRESHOLD
+            return previousPercentageThreshold + PROGRESS_THRESHOLD
         }
         else
             return previousPercentageThreshold

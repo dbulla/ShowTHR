@@ -1,5 +1,10 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.Settings.Companion.MAX_SLOPE
+import com.marginallyclever.showthr.Settings.Companion.REDISTRIBUTION_RATE
+import com.marginallyclever.showthr.Settings.Companion.BLUE_CONVERSION
+import com.marginallyclever.showthr.Settings.Companion.GREEN_CONVERSION
+import com.marginallyclever.showthr.Settings.Companion.RED_CONVERSION
 import com.marginallyclever.showthr.Utilities.Companion.calculateX
 import com.marginallyclever.showthr.Utilities.Companion.calculateY
 import com.marginallyclever.showthr.Utilities.Companion.getBall2Theta
@@ -201,7 +206,7 @@ class SandSimulation(val settings: Settings) {
             for (y in startY..<endY - 1) {
                 for (x in startX..<endX - 1) {
                     val sandHeightHere = sandGrid[x][y]
-                    val sandHeightHereMinusSlope = sandHeightHere - settings.MAX_SLOPE
+                    val sandHeightHereMinusSlope = sandHeightHere - MAX_SLOPE
                     var neighborIndex = 0
 
                     // Check up, down, left, right neighbors
@@ -224,7 +229,7 @@ class SandSimulation(val settings: Settings) {
 
                     if (neighborIndex != 0) {
                         settled = false
-                        val d = settings.REDISTRIBUTION_RATE * 2.0 / neighborIndex
+                        val d = REDISTRIBUTION_RATE * 2.0 / neighborIndex
 
                         var i = 0
                         while (i < neighborIndex) {
@@ -275,12 +280,11 @@ class SandSimulation(val settings: Settings) {
      * @return the corresponding 32-bit ARGB color value.
      */
     private fun encode32bit(greyscale: Int): Int {
-        var newGreyscale = greyscale
-        val red: Int = (newGreyscale * settings.redConversion).toInt()
-        val green: Int = (newGreyscale * settings.greenConversion).toInt()
-        val blue: Int = (newGreyscale * settings.blueConversion).toInt()
+        val red: Int = (greyscale * RED_CONVERSION).toInt()
+        val green: Int = (greyscale * GREEN_CONVERSION).toInt()
+        val blue: Int = (greyscale * BLUE_CONVERSION).toInt()
         val resultRgb = when {
-            settings.useGreyBackground -> Color(newGreyscale, newGreyscale, newGreyscale).rgb
+            settings.useGreyBackground -> Color(greyscale, greyscale, greyscale).rgb
             else                       -> Color(red, green, blue).rgb
         }
         return resultRgb
