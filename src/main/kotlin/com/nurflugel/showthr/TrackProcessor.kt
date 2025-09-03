@@ -16,6 +16,7 @@ import kotlin.system.exitProcess
  */
 class TrackProcessor() {
 
+    /** Take the .thr file and parse it into a list of pairs of theta and rho */
     fun extractThetaRhoPairs(file: File): MutableList<ThetaRho> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
@@ -95,14 +96,19 @@ class TrackProcessor() {
             for (i in 0..<sequence.size - 1) {
                 val (theta1, rho1) = sequence[i]
                 val (theta2, rho2) = sequence[i + 1]
-                val deltaRho = abs(rho1 - rho2)
-                val deltaTheta = abs(theta1 - theta2)
+                val deltaRho = rho2 - rho1
+                val deltaTheta = theta2 - theta1
                 //                val areBothRhosNotZero = rho1 != 0.0 || rho2 != 0.0 // this doesn't really save that much time unless we only have 1 ball
                 //                if (settings.useTwoBalls || areBothRhosNotZero) { // if rhos are zero, skip expanding - unless we have two balls
-                if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
+                val maxRhoDiff = .01
+                val maxThetaDiff = .05
+                if ((abs(deltaRho) > maxRhoDiff || abs(deltaTheta) > maxThetaDiff) || (rho1 < .0001 && rho2 < .0001)) {
                     val thetaDiff = theta2 - theta1
                     val rhoDiff = rho2 - rho1
-                    val numPoints = max(1, abs(thetaDiff / .01).toInt())
+                    val numPointsTheta = max(1, abs(thetaDiff / maxThetaDiff).toInt())
+                    val numPointsRho = max(1, abs(rhoDiff / maxRhoDiff).toInt())
+                    // which is greater?  Use that to subdivide the segment.
+                    val numPoints=max(numPointsRho,numPointsTheta)
                     if (numPoints == 1) { // special case to prevent division by zero below
                         newSequence.add(ThetaRho(theta1, rho1))
                     }

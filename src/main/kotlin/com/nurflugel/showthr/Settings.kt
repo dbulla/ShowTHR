@@ -51,7 +51,7 @@ class Settings {
      * @return true if the arguments are valid
      */
     fun parseInputs(args: Array<String>): Boolean {
-
+        println("args= ${args.joinToString(",")}")
         try {
             if (getSettingsFromArgs(args)) {
                 adjustSettings()

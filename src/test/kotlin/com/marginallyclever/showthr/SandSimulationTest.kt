@@ -75,7 +75,7 @@ class SandSimulationTest {
         settings.calculateCenter()
         val sandSimulation = SandSimulation(settings)
         val showThr = ShowTHR
-        showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation, counter)
+        showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation, counter, imageRenderer)
 
         val image = sandSimulation.renderSandImage()
         // save the image to disk

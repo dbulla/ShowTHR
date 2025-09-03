@@ -6,6 +6,7 @@
 
 - [ ] All of the track isn't being drawn - skip?
 - [ ] Brighter sand
+- [ ] Black background outside of sand (i.e., depth 0 for rho>1)
 - [ ] Make the image sized "fixed" - or at least keep it's aspect ratio when scaled up
 - [x] Rename options and document nicely
 - [ ] Batch tracks
@@ -28,6 +29,7 @@
   - [x] Takes the images that are drawn and saves them to a dir after displaying
   - [x] Optional - wrap FFMPEG and create the animation 
     - [x] Windows will suck
+  - [ ] Beware of darkness - multiple tracks keep getting darker and darker
 
 - [ ] Show duration from previous status output
 

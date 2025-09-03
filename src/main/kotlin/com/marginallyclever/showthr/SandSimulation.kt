@@ -1,23 +1,13 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Settings.Companion.MAX_SLOPE
 import com.nurflugel.showthr.Settings.Companion.REDISTRIBUTION_RATE
-import com.nurflugel.showthr.Settings.Companion.BLUE_CONVERSION
-import com.nurflugel.showthr.Settings.Companion.GREEN_CONVERSION
-import com.nurflugel.showthr.Settings.Companion.RED_CONVERSION
+import com.nurflugel.showthr.ThetaRho
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
 import com.nurflugel.showthr.Utilities.Companion.getBall2Theta
 import com.nurflugel.showthr.Utilities.Companion.getBall2ThetaRho
-import com.nurflugel.showthr.ImageFrame
-import com.nurflugel.showthr.Settings
-import com.nurflugel.showthr.ThetaRho
-import java.awt.Color
-import java.awt.image.BufferedImage
-import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.io.File
-import java.io.IOException
-import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -31,13 +21,11 @@ import kotlin.math.sqrt
  */
 class SandSimulation(val settings: Settings) {
 
-    private val sandGrid = Array(settings.tableDiameter) { DoubleArray(settings.tableDiameter) } // 2D array for sand density
+    internal val sandGrid: Array<DoubleArray> = Array(settings.tableDiameter) { DoubleArray(settings.tableDiameter) } // 2D array for sand density
     private val ball = Ball("Ball_1", settings.ballRadius, settings)
     private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball, slightly smaller than the first
-    private lateinit var startPosition: ThetaRho
-    private lateinit var startPosition2: ThetaRho
-    private var imageFrame: ImageFrame? = null
-    private var bufferedImage: BufferedImage
+    private lateinit var startPosition: ThetaRho // todo move this into ball??
+    private lateinit var startPosition2: ThetaRho // todo move this into ball??
 
     init {
         ball.setPosition(ThetaRho(0.0, 0.0))
@@ -47,13 +35,6 @@ class SandSimulation(val settings: Settings) {
 
         // Initialize sand grid to uniform density
         initializeSandGrid(settings.initialSandDepth)
-        val backgroundImageFile = File(settings.backgroundImageName)
-        val isBackgroundImagePresent = backgroundImageFile.exists()
-        bufferedImage = when {
-            isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
-            else                     -> BufferedImage(settings.tableDiameter, settings.tableDiameter, TYPE_INT_ARGB)
-        }
-        if (!settings.isHeadless) imageFrame = ImageFrame(bufferedImage, settings)
     }
 
     private fun initializeSandGrid(initialSandDepth: Double) {
@@ -64,28 +45,7 @@ class SandSimulation(val settings: Settings) {
         }
     }
 
-    /**
-     *
-     *  Read in a pre-generated image of a "clean" cycle as a starting point for the sand.
-
-     *  Just for reference...
-     *  int red = (rgb>>16)&0x0ff;
-     *  int green=(rgb>>8) &0x0ff;
-     *  int blue= (rgb)    &0x0ff;
-     */
-    private fun readInCleanedImage(cleanFile: File): BufferedImage {
-        val backgroundImage = ImageIO.read(cleanFile)
-        // set the sand height to the image
-        (0..<settings.tableDiameter).forEach { i ->
-            (0..<settings.tableDiameter).forEach { j ->
-                val color = Color(backgroundImage.getRGB(i, j))
-                val newLevel = (color.red + color.green + color.blue).toDouble() / 3 / 30 // 30 seems to work...
-                sandGrid[i][j] = newLevel
-            }
-        }
-        return backgroundImage
-    }
-
+    // todo move this into ball??
     fun setTarget(thetaRho: ThetaRho) {
         ball.setTarget(thetaRho)
         startPosition = ball.position
@@ -118,6 +78,7 @@ class SandSimulation(val settings: Settings) {
         makeBallPushSand(ball)
         if (settings.useTwoBalls) makeBallPushSand(ball2)
     }
+
 
     /**
      * This method simulates the ball pushing the sand out of its personal space.
@@ -250,68 +211,23 @@ class SandSimulation(val settings: Settings) {
         } while (!settled)
     }
 
-    /**
-     * Render the sand density as a grayscale image.  The darkest pixels have the least sand.
-     *
-     * @return the image
-     */
-    fun renderSandImage(): BufferedImage {
-        var max = 8.5 // setting max dynamically makes the animation flicker - setting it to a constant 8.5 seems acceptable.
-        if (settings.isHeadless) {
-            for (i in 0..<settings.tableDiameter) {
-                for (j in 0..<settings.tableDiameter) {
-                    max = max(max, sandGrid[i][j])
-                }
-            }
-            //            println("max = ${max}")
-        }
-        for (i in 0..<settings.tableDiameter) {
-            for (j in 0..<settings.tableDiameter) {
-                val gray = minOf(255, (sandGrid[i][j] * 30).toInt()) // Simplified calculation
-                bufferedImage.setRGB(i, j, encode32bit(gray))
-            }
-        }
-        if (!settings.isHeadless) imageFrame?.updateImage(bufferedImage)
-        return bufferedImage
-    }
-
-    /**
-     * Encodes an 8-bit greyscale value into a 32-bit ARGB color value.
-     * The alpha channel is set to full opacity (0xFF), and the same greyscale value is applied to the red, green, and blue channels.
-     *
-     * @param greyscale the 8-bit greyscale value to encode, expected to be in the range [0, 255].
-     * @return the corresponding 32-bit ARGB color value.
-     */
-    private fun encode32bit(greyscale: Int): Int {
-        val red: Int = (greyscale * RED_CONVERSION).toInt()
-        val green: Int = (greyscale * GREEN_CONVERSION).toInt()
-        val blue: Int = (greyscale * BLUE_CONVERSION).toInt()
-        val resultRgb = when {
-            settings.useGreyBackground -> Color(greyscale, greyscale, greyscale).rgb
-            else                       -> Color(red, green, blue).rgb
-        }
-        return resultRgb
-    }
-
-
     fun ballAtTarget(): Boolean {
         return ball.atTarget
     }
 
-    fun writeImage() {
-        val file = File(settings.outputFilename!!)
-        writeImage(file, bufferedImage)
-        println("Image saved to " + file.absolutePath)
-    }
 
-    fun writeImage(file: File, image: BufferedImage) {
-        try { // save the image to disk
-            ImageIO.write(image, settings.ext, file)
-
-        } catch (e: IOException) {
-            println("Error saving file " + settings.outputFilename + ": " + e.message)
+    fun calculateMaxAndAverageSandHeights(): Double {
+        val max = sandGrid.maxOf { it.maxOrNull() ?: 0.0 }
+        var sum = 0.0
+        //        if (settings.isHeadless) {
+        for (i in 0..<settings.tableDiameter) {
+            sum += sandGrid[i].average()
         }
-
+        println("max = $max, average=${sum / settings.tableDiameter}")
+        //        }
+        return max
     }
+
+
 }
 
