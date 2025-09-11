@@ -33,6 +33,13 @@
 
 - [ ] Show duration from previous status output
 
+- [ ] ~~Move to +/- x, y - only map to final output at rendering~~
+  - [ ] ~~Instead of x from 0...2*radius, make it -radius to +radius~~
+  - [ ] ~~Simplifies rho/theta conversion~~
+  - [ ] ~~Perform offset only when rendering~~
+  - [ ] Shit, array logic is all 0..2*radius!!!!!
+
+
 
 
 ##### **Long Term - Rendering farm**
@@ -46,8 +53,11 @@
       - [ ] Delete image
     - [ ] Main Mac will have a program that coordinates with the workers
       - [ ] Can they broadcast availability to server at startup?
-        - [ ] Implies main server can listen to workers
+        - [ ] Need to know server IP
+        - [ ] Implies main server can listen to workers - or ping them for status
+      - [ ] What happens when server is down?
         - [ ] Don't fail if server isn't available - wait XXX and try again forever
+      - [ ] What happens if worker dies? i.e., unfinished assigned job
 
 
 

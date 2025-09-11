@@ -5,7 +5,7 @@ import com.nurflugel.showthr.FfmpegHelper
 import com.nurflugel.showthr.ImageRenderer
 import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Settings.Companion.PROGRESS_THRESHOLD
-import com.nurflugel.showthr.ThetaRho
+import com.nurflugel.showthr.NormalizedThetaRho
 import com.nurflugel.showthr.TrackProcessor
 import java.io.File
 import java.io.IOException
@@ -120,7 +120,7 @@ object ShowTHR {
 
     @OptIn(ExperimentalTime::class)
     private fun moveToNextThetaRho(
-        thetaRho: ThetaRho,
+        normalizedThetaRho: NormalizedThetaRho,
         sandSimulation: SandSimulation,
         index: Int,
         previousPercentage: Double,
@@ -133,25 +133,34 @@ object ShowTHR {
     ): Double {
 
         if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setInitialBallPosition(thetaRho)
+            sandSimulation.setInitialBallPosition(normalizedThetaRho)
         }
 
-        sandSimulation.setTarget(thetaRho)
+        sandSimulation.setTarget(normalizedThetaRho)
+        var count=0
         while (!sandSimulation.ballAtTarget()) {
             sandSimulation.update()
-        }
-        // Only output images every N lines, or at the very end
-        if (index % settings.imageSkipCount == 0 || index == numLines - 1) {
-            val image = imageRenderer.renderSandImage(settings)
-            if (settings.makeAnimation) {
-                writeImageWithCounterName(counter, imageRenderer)
+            if (count % settings.imageSkipCount == 0 || index == numLines - 1) {
+                val image = imageRenderer.renderSandImage(settings)
+                if (settings.makeAnimation) {
+                    writeImageWithCounterNameAndIncrementCounter(counter, imageRenderer)
+                }
             }
+            count++
         }
+//        println("Processed $count updates moving to $normalizedThetaRho")
+        // Only output images every N lines, or at the very end
+//        if (index % settings.imageSkipCount == 0 || index == numLines - 1) {
+//            val image = imageRenderer.renderSandImage(settings)
+//            if (settings.makeAnimation) {
+//                writeImageWithCounterName(counter, imageRenderer)
+//            }
+//        }
         val newPreviousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
         return newPreviousPercentage
     }
 
-    private fun writeImageWithCounterName(counter: Counter, imageRenderer: ImageRenderer) {
+    private fun writeImageWithCounterNameAndIncrementCounter(counter: Counter, imageRenderer: ImageRenderer) {
         val indexString = String.format("%06d", counter.increment())
         val file = File("animationImages/image_$indexString.png")
         val parentFile = file.parentFile

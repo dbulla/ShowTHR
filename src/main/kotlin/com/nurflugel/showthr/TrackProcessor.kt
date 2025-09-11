@@ -17,7 +17,7 @@ import kotlin.system.exitProcess
 class TrackProcessor() {
 
     /** Take the .thr file and parse it into a list of pairs of theta and rho */
-    fun extractThetaRhoPairs(file: File): MutableList<ThetaRho> {
+    fun extractThetaRhoPairs(file: File): MutableList<NormalizedThetaRho> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
             settings.isGenerateCleanBackdrop -> createCleaningTrack()
@@ -29,7 +29,7 @@ class TrackProcessor() {
                 }
             }
         }
-        var sequence: List<ThetaRho> = parseSequence(trackLines, regex)
+        var sequence: List<NormalizedThetaRho> = parseSequence(trackLines, regex)
         if (settings.isReversed) sequence = sequence.reversed().toMutableList()
         val expandedSequence = expandSequence(sequence)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
@@ -39,8 +39,8 @@ class TrackProcessor() {
     /**
      *  Go through the original file and clean it up, then produce a nice list, consisting of pairs of theta and rho.
      */
-    fun parseSequence(lines: List<String>, regex: Regex): MutableList<ThetaRho> {
-        val sequence: MutableList<ThetaRho> =
+    fun parseSequence(lines: List<String>, regex: Regex): MutableList<NormalizedThetaRho> {
+        val sequence: MutableList<NormalizedThetaRho> =
 
             lines.map { it.trim() }
                 .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//") || it.startsWith("theta") }
@@ -49,7 +49,7 @@ class TrackProcessor() {
                     try {
                         val theta = parts[0].toDouble()
                         val rho = parts[1].toDouble()
-                        ThetaRho(theta, rho)
+                        NormalizedThetaRho(theta, rho)
                     } catch (e: Exception) {
                         println("Error parsing sequence: ${e.message}: theta=${parts[0]}, rho=${parts[1]}")
                         throw e
@@ -90,9 +90,9 @@ class TrackProcessor() {
      * The problem is that the app will draw straight lines in x,y space between two points - and when you only have a change in theta, it draws a straight line instead of
      * the curve that it should be.  So, for any case where theta changes but rho does not, we need to expand the sequence with many intermediate points to fake the curve.
      */
-    fun expandSequence(sequence: List<ThetaRho>): MutableList<ThetaRho> {
+    fun expandSequence(sequence: List<NormalizedThetaRho>): MutableList<NormalizedThetaRho> {
         if (settings.shouldExpandSequences) {
-            val newSequence = mutableListOf<ThetaRho>()
+            val newSequence = mutableListOf<NormalizedThetaRho>()
             for (i in 0..<sequence.size - 1) {
                 val (theta1, rho1) = sequence[i]
                 val (theta2, rho2) = sequence[i + 1]
@@ -110,7 +110,7 @@ class TrackProcessor() {
                     // which is greater?  Use that to subdivide the segment.
                     val numPoints=max(numPointsRho,numPointsTheta)
                     if (numPoints == 1) { // special case to prevent division by zero below
-                        newSequence.add(ThetaRho(theta1, rho1))
+                        newSequence.add(NormalizedThetaRho(theta1, rho1))
                     }
                     else {
                         val deltaRho = rhoDiff / (numPoints - 1)
@@ -119,12 +119,12 @@ class TrackProcessor() {
                         (0..<numPoints).forEach { j ->
                             val newTheta = theta1 + deltaTheta * j
                             val newRho = rho1 + deltaRho * j
-                            newSequence.add(ThetaRho(newTheta, newRho))
+                            newSequence.add(NormalizedThetaRho(newTheta, newRho))
                         }
                     }
                 }
                 //                }
-                else newSequence.add(ThetaRho(theta1, rho1))
+                else newSequence.add(NormalizedThetaRho(theta1, rho1))
             }
             if (sequence.isNotEmpty()) newSequence.add(sequence.last())
             return newSequence

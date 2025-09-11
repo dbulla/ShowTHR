@@ -1,24 +1,24 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.NormalizedThetaRho
+import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Settings.Companion.RELAX_MARGIN
 import com.nurflugel.showthr.Utilities.Companion.calculateDistanceRhoTheta
-import com.nurflugel.showthr.Settings
-import com.nurflugel.showthr.ThetaRho
 
 // Ball class for handling ball movement and position
 internal class Ball(val name: String, val radius: Int, val settings: Settings) {
-    internal var position: ThetaRho = ThetaRho(0.0, 0.0)
-    private var target: ThetaRho = ThetaRho(0.0, 0.0)
-    private val speed = 1.0 // Arbitrary speed value
+    internal var position: NormalizedThetaRho = NormalizedThetaRho(0.0, 0.0)
+    private var target: NormalizedThetaRho = NormalizedThetaRho(0.0, 0.0)
+
     var atTarget: Boolean = false
     val ballRelaxedMargin = (radius * RELAX_MARGIN).toInt()
 
-    fun setPosition(thetaRho: ThetaRho) {
-        this.position = thetaRho
+    fun setPosition(normalizedThetaRho: NormalizedThetaRho) {
+        this.position = normalizedThetaRho
     }
 
-    fun setTarget(thetaRho: ThetaRho) {
-        target = thetaRho
+    fun setTarget(normalizedThetaRho: NormalizedThetaRho) {
+        target = normalizedThetaRho
         val distance = calculateDistanceRhoTheta(position, target)
         atTarget = distance < .001
     }
@@ -32,32 +32,27 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
      * This is fixed in SandSimulation.expandSequence(), where we tweak the initial theta and rho to produce an expanded list where the current
      * functionality will work even though it's wrong.
      */
-    fun updatePosition(deltaTime: Double) {
-        //        val direction = Vector2d(target)
-        //        direction.sub(position)
-        //
-        //        val len = direction.lengthSquared()
-        //        if (len < speed * deltaTime) { // don't overshoot
-        //            position.set(target)
-        //            atTarget = true
-        //        }
-        //        else {
-        //            direction.normalize()
-        //            direction.scale(speed * deltaTime)
-        //            position.add(direction)
-        //            atTarget = false
-        //        }
-        // take the deltas
-        //        val distance = calculateDistanceRhoTheta(position, target)
-        val deltaTheta = speed * deltaTime * (target.theta - position.theta)
-        val deltaRho = speed * deltaTime * (target.rho - position.rho)
-        position = ThetaRho(position.theta + deltaTheta, position.rho + deltaRho)
+    fun updatePosition(settings: Settings) {
+
         val distance = calculateDistanceRhoTheta(position, target)
-        atTarget = distance < 0.01
-//        println("position: $position, distance: $distance  ")
+        if (settings.proposedLength >= distance || (distance - settings.proposedLength) < 0.0001) { // we're there!  Or, close enough.   todo be clever enough to do this w/o the ||
+            atTarget = true
+            position = target
+            println("$name at target, distance: $distance, settings.proposedLength: ${settings.proposedLength}")
+        }
+        else {
+            val percentageOfProposedLength = settings.proposedLength / distance
+            // Now, assume a constant change in theta and rho (reasonable, especially for small changes)
+            val deltaRho = percentageOfProposedLength * (target.rho - position.rho)
+            val deltaTheta = percentageOfProposedLength * (target.theta - position.theta)
+            val updatedTheta = position.theta + deltaTheta
+            val updatedRho = position.rho + deltaRho
+            position = NormalizedThetaRho(updatedTheta, updatedRho)
+//            println("theta: ${position.theta}, rho: ${position.rho}, distance: $distance, percentageOfProposedLength=$percentageOfProposedLength in pixels: ${percentageOfProposedLength * settings.tableDiameter} ")
+        }
     }
 
     override fun toString(): String {
-        return "Ball(name='$name',  Position:($position),  target:($target), speed=$speed, atTarget=$atTarget)"
+        return "Ball(name='$name',  Position:($position),  target:($target), speed=$settings.speed, atTarget=$atTarget)"
     }
 }

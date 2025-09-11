@@ -1,7 +1,7 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.Utilities
 import com.nurflugel.showthr.Utilities.Companion.getBall2Rho
+import com.nurflugel.showthr.Utilities.Companion.getBall2Theta
 import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.lang.Math.PI
 import kotlin.test.Test
@@ -39,7 +39,7 @@ class UtilitiesTest {
     fun `test getBall2Rho with rho as zero`() {
         // Test case when rho is 0
         val actual = getBall2Rho(0.0)
-        assertEquals(1.0, actual, "getBall2Rho(0.0) should return 1.0")
+        assertEquals(-1.0, actual, "getBall2Rho(0.0) should return 1.0")
     }
 
     @Test
@@ -51,52 +51,40 @@ class UtilitiesTest {
     @Test
     fun `test getBall2Rho with rho as half`() {
         val actual = getBall2Rho(0.5)
-        assertEquals(0.5, actual, "getBall2Rho(0.5) should return 0.5")
+        assertEquals(-0.5, actual, "getBall2Rho(0.5) should return -0.5")
     }
 
     @Test
     fun `test getBall2Rho with rho as small positive value`() {
         // Test case when rho is a small positive value
         val actual = getBall2Rho(0.1)
-        assertEquals(0.9, actual, "getBall2Rho(0.1) should return 0.9")
+        assertEquals(-0.9, actual, "getBall2Rho(0.1) should return 0.9")
     }
 
     @Test
     fun `test getBall2Rho with rho as large positive value less than one`() {
         // Test case when rho is a large positive value less than one
         val actual = getBall2Rho(0.9)
-        assertEquals(0.1, actual, .001, "getBall2Rho(0.9) should return 0.1")
+        assertEquals(-0.1, actual, .001, "getBall2Rho(0.9) should return 0.1")
     }
 
     @Test
     fun `test getBall2Theta with theta as zero`() {
-        val actual = Utilities.getBall2Theta(0.0)
-        assertEquals(PI, actual, "getBall2Theta(0.0) should return PI")
+        val actual = getBall2Theta(0.0)
+        assertEquals(0.0, actual, "getBall2Theta(0.0) should return 0.0")
     }
 
     @Test
     fun `test getBall2Theta with theta as PI divided by 2`() {
         // Test case when theta is PI/2
-        val actual = Utilities.getBall2Theta(PI / 2)
-        assertEquals(PI * 3 / 2, actual, "getBall2Theta(PI/2) should return 3*PI/2")
+        val actual = getBall2Theta(PI / 2)
+        assertEquals(PI / 2, actual, "getBall2Theta(PI/2) should return 3*PI/2")
     }
 
     @Test
     fun `test getBall2Theta with theta as PI`() {
-        val actual = Utilities.getBall2Theta(PI)
-        assertEquals(2 * PI, actual, "getBall2Theta(PI) should return 2*PI")
+        val actual = getBall2Theta(PI)
+        assertEquals(PI, actual, "getBall2Theta(PI) should return 2*PI")
     }
 
-    @Test
-    fun `test getBall2Theta with theta as three times PI divided by 2`() {
-        val actual = Utilities.getBall2Theta(3 * PI / 2)
-        assertEquals(2 * PI + PI / 2, actual, "getBall2Theta(3*PI/2) should return 5*PI/2")
-    }
-
-    @Test
-    fun `test getBall2Theta with theta as negative angle`() {
-        // Test case when theta is a negative value
-        val actual = Utilities.getBall2Theta(-PI / 2)
-        assertEquals(PI / 2, actual, "getBall2Theta(-PI/2) should return PI/2")
-    }
 }

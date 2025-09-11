@@ -1,11 +1,5 @@
 package com.marginallyclever.showthr
 
-import com.nurflugel.showthr.ThetaRho
-import com.nurflugel.showthr.TrackProcessor
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import org.junit.jupiter.api.Test
-
 class ShowTHRTest {
 
 //    @Test

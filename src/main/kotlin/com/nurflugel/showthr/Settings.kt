@@ -34,9 +34,10 @@ class Settings {
     var tableRadius = 0
     var centerX = 0
     var centerY = 0
-
+    var proposedLength = 0.0
     lateinit var ext: String
     var useGreyBackground = false
+    private val speed = 1.0 // Arbitrary speed value
 
     var isHeadless = false
     var maxRadius = tableRadius - 20
@@ -116,6 +117,7 @@ class Settings {
                         .map { if (it.endsWith(".thr")) it else "$it.thr" }
                     batchTracks.addAll(fileNames)
                 }
+
                 "-depth"             -> initialSandDepth = setValueFromArg(++index, args).toDouble()
                 "-o"                 -> outputFilename = setValueFromArg(++index, args)
                 "-skip"              -> imageSkipCount = setValueFromArg(++index, args).toInt()
@@ -196,6 +198,7 @@ class Settings {
         centerX = tableRadius
         centerY = centerX
         maxRadius = tableRadius - 20
+        proposedLength = 2 * speed * deltaTime / (maxRadius * 2.0 )
     }
 
     // verify the file extension is supported by ImageIO

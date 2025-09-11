@@ -33,6 +33,7 @@ class ImageRenderer(private val settings: Settings, val sandGrid: Array<DoubleAr
      */
     fun renderSandImage(settings: Settings): BufferedImage {
         val max = sandGrid.maxOf { it.maxOrNull() ?: 0.0 }
+//        println("Max sand: $max")
         for (i in 0..<settings.tableDiameter) {
             for (j in 0..<settings.tableDiameter) {
 //                val gray = (sandGrid[i][j] * 255.0 / max).toInt() // Convert density to grayscale - original calc
