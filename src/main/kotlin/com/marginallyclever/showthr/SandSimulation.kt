@@ -1,12 +1,11 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.NormalizedThetaRho
 import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Settings.Companion.MAX_SLOPE
 import com.nurflugel.showthr.Settings.Companion.REDISTRIBUTION_RATE
-import com.nurflugel.showthr.NormalizedThetaRho
 import com.nurflugel.showthr.Utilities.Companion.calculateSandX
 import com.nurflugel.showthr.Utilities.Companion.calculateSandY
-import com.nurflugel.showthr.Utilities.Companion.getBall2Theta
 import com.nurflugel.showthr.Utilities.Companion.getBall2ThetaRho
 import kotlin.math.cos
 import kotlin.math.max
@@ -22,16 +21,14 @@ import kotlin.math.sqrt
 class SandSimulation(val settings: Settings) {
 
     internal val sandGrid: Array<DoubleArray> = Array(settings.tableDiameter) { DoubleArray(settings.tableDiameter) } // 2D array for sand density
-    private val ball = Ball("Ball_1", settings.ballRadius, settings)
+    private val ball1 = Ball("Ball_1", settings.ballRadius, settings)
     private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball, slightly smaller than the first
-    private lateinit var startPosition: NormalizedThetaRho // todo move this into ball??
-    private lateinit var startPosition2: NormalizedThetaRho // todo move this into ball??
 
     init {
-        ball.setPosition(NormalizedThetaRho(0.0, 0.0))
-        if (settings.useTwoBalls) {
-            ball2.setPosition(NormalizedThetaRho(getBall2Theta(ball.position.theta), 1.0))
-        }
+//        ball1.setPosition(NormalizedThetaRho(0.0, 0.0))
+//        if (settings.useTwoBalls) {
+//            ball2.setPosition(getBall2ThetaRho(ball1.currentPosition))
+//        }
 
         // Initialize sand grid to uniform density
         initializeSandGrid(settings.initialSandDepth)
@@ -45,51 +42,39 @@ class SandSimulation(val settings: Settings) {
         }
     }
 
-    fun setTarget(normalizedThetaRho: NormalizedThetaRho) {
-        ball.setTarget(normalizedThetaRho)
-        startPosition = ball.position
+    fun setTargets(normalizedThetaRho: NormalizedThetaRho) {
+        ball1.setTarget(normalizedThetaRho)
         if (settings.useTwoBalls) {
-            val ball2ThetaRho = getBall2ThetaRho(normalizedThetaRho)
-            ball2.setTarget(ball2ThetaRho)
-            startPosition2 = ball2.position // we need this for the relaxation step
-            //            println("setTarget - ball 1 target: $normalizedThetaRho, ball 2 target: $ball2ThetaRho")
+            ball2.setTarget(getBall2ThetaRho(normalizedThetaRho))
         }
     }
 
-    fun setInitialBallPosition(normalizedThetaRho: NormalizedThetaRho) {
-        ball.setPosition(normalizedThetaRho)
-        ball.setTarget(normalizedThetaRho)
+    fun setInitialBallPositions(normalizedThetaRho: NormalizedThetaRho) {
+        ball1.setInitialPosition(normalizedThetaRho)
         if (settings.useTwoBalls) {
-            val ball2ThetaRho = getBall2ThetaRho(normalizedThetaRho)
-            ball2.setPosition(ball2ThetaRho)
-            ball2.setTarget(ball2ThetaRho)
+            ball2.setInitialPosition(getBall2ThetaRho(normalizedThetaRho))
         }
     }
 
-    fun updateBall1() {
-        //        if (!ball.updatePosition()) {
-        ball.updatePosition()
+    fun updateBalls() {
+        ball1.updatePosition()
+        if (settings.useTwoBalls) ball2.updatePosition()
         // the next two lines are the bottleneck in the app's performance.
-        makeBallPushSand(ball) // push the sand up
-        relaxSand(startPosition, ball) // let the sand settle
-//        println("Ball1: ${ball.position}")
+        makeBallPushSand(ball1) // push the sand up
+        if (settings.useTwoBalls) makeBallPushSand(ball2) // push the sand up
+        relaxSand(ball1) // let the sand settle
+        if (settings.useTwoBalls) relaxSand(ball2) // let the sand settle
+        //        println("Ball1: ${ball.position}")
     }
 
-    fun updateBall2() {
-        //        if (!ball2.updatePosition()) {
-        ball2.updatePosition()
-        makeBallPushSand(ball2) // push the sand up
-        relaxSand(startPosition2, ball2) // let the sand settle
-//        println("Ball2: ${ball2.position}")
-    }
 
     /**
      * This method simulates the ball pushing the sand out of its personal space.
      */
     private fun makeBallPushSand(ball: Ball) {
         // Iterate over the area affected by the ball's radius
-        val ballX = calculateSandX(ball.position, settings).toInt()
-        val ballY = calculateSandY(ball.position, settings).toInt()
+        val ballX = calculateSandX(ball.currentPosition, settings).toInt()
+        val ballY = calculateSandY(ball.currentPosition, settings).toInt()
         val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
@@ -123,29 +108,14 @@ class SandSimulation(val settings: Settings) {
         }
     }
 
-    private fun isInsideTable(x: Int, y: Int): Boolean {
-        return when {
-            x < 0                      -> false
-            y < 0                      -> false
-            x > settings.tableDiameter -> false
-            y > settings.tableDiameter -> false
-            else                       -> true
-            //            else -> {
-            //                val isXInside = x in 0..<settings.tableDiameter
-            //                val isYInside = y in 0..<settings.tableDiameter
-            //                return isXInside && isYInside
-            //            }
-        }
-    }
-
     /**
      * Make the sand naturally collapse into a more stable shape.
      */
-    private fun relaxSand(startPosition: NormalizedThetaRho, ball: Ball) {
-        var startX = calculateSandX(startPosition, settings).toInt()
-        var startY = calculateSandY(startPosition, settings).toInt()
-        var endX = calculateSandY(ball.position, settings).toInt()
-        var endY = calculateSandY(ball.position, settings).toInt()
+    private fun relaxSand(ball: Ball) {
+        var startX = calculateSandX(ball.startPosition, settings).toInt()
+        var startY = calculateSandY(ball.startPosition, settings).toInt()
+        var endX = calculateSandY(ball.currentPosition, settings).toInt()
+        var endY = calculateSandY(ball.currentPosition, settings).toInt()
 
         if (startX > endX) {
             val temp = startX
@@ -218,14 +188,12 @@ class SandSimulation(val settings: Settings) {
         } while (!settled)
     }
 
-    fun ballAtTarget(): Boolean {
-        return ball.atTarget
+    fun ballsAtTarget(): Boolean {
+        return when {
+            settings.useTwoBalls -> ball1.atTarget && ball2.atTarget
+            else                 -> ball1.atTarget
+        }
     }
-
-    fun ball2AtTarget(): Boolean {
-        return ball2.atTarget
-    }
-
 
     fun calculateMaxAndAverageSandHeights(): Double {
         val max = sandGrid.maxOf {
@@ -242,6 +210,21 @@ class SandSimulation(val settings: Settings) {
         return max
     }
 
+
+    private fun isInsideTable(x: Int, y: Int): Boolean {
+        return when {
+            x < 0                      -> false
+            y < 0                      -> false
+            x > settings.tableDiameter -> false
+            y > settings.tableDiameter -> false
+            else                       -> true
+            //            else -> {
+            //                val isXInside = x in 0..<settings.tableDiameter
+            //                val isYInside = y in 0..<settings.tableDiameter
+            //                return isXInside && isYInside
+            //            }
+        }
+    }
 
 }
 

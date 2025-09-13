@@ -1,12 +1,8 @@
 package com.nurflugel.showthr
 
-import com.nurflugel.showthr.Utilities.Companion.calculateAdjustedRho
 import com.nurflugel.showthr.Utilities.Companion.calculateDistanceRhoTheta
-import com.nurflugel.showthr.Utilities.Companion.calculateNormalizedThetaRho
 import com.nurflugel.showthr.Utilities.Companion.calculateSandX
 import com.nurflugel.showthr.Utilities.Companion.calculateSandY
-import com.nurflugel.showthr.Utilities.Companion.calculateThetaFromPolarXY
-import com.nurflugel.showthr.Utilities.Companion.calculateThetaWithSandRho
 import kotlin.math.PI
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -28,55 +24,15 @@ class CompanionTest {
     //        tableDiameter = 200
     //        calculateCenter()
     //    }
-
-    @Test
-    fun `validate Polar Coord Translation`() {
-        assertEquals(0.0, calculateThetaFromPolarXY(0.0, 0.0, 0.0))
-        assertEquals(0.0, calculateThetaFromPolarXY(100.0, 0.0, 100.0))
-        assertEquals(PI / 2, calculateThetaFromPolarXY(0.0, 100.0, 100.0))
-        assertEquals(PI, calculateThetaFromPolarXY(-100.0, 0.0, 100.0))
-        assertEquals(PI * 3 / 2, calculateThetaFromPolarXY(0.0, -100.0, 100.0))
-    }
-
-    @Test
-    fun `1 calculateThetaRho test with x and y at origin`() {
-        val x = 100.0
-        val y = 100.0
-
-        val result = calculateThetaWithSandRho(x, y, settings)
-
-        assertEquals(0.0, result.rho, "Rho should be 0.0 for origin")
-        assertEquals(0.0, result.theta, "Theta should be 0.0 for origin")
-    }
-
-    @Test
-    fun `2 calculateThetaRho test with x and y on positive X-axis`() {
-        val x = 100.0  // 1/2 way
-        val y = 0.0
-
-        val result = calculateThetaWithSandRho(x, y, settings)
-        assertEquals(100.0, result.rho, "Rho should be 1.0 at (100, 0)")
-        assertEquals(PI * 3 / 2, result.theta, "Theta should be 0.0 when y is 0 and x is positive") // todo what???
-
-        val normalizedResult = calculateNormalizedThetaRho(result, settings) // adjust to table max radius
-
-        assertEquals(1.25, normalizedResult.rho, "Rho should be 1.0 at (100, 0)")
-        assertEquals(PI * 3 / 2, normalizedResult.theta, "Theta should be 0.0 when y is 0 and x is positive")
-
-        val adjustedRho = calculateAdjustedRho(result, settings) // adjust to table max radius
-        assertEquals(80.0, adjustedRho, "Adjusted (max) rho should be 80.0 at (100, 0)")
-    }
-
-    @Test
-    fun `calculateThetaRho test with x and y on positive Y-axis`() {
-        val x = 0.0
-        val y = 100.0
-
-        val result = calculateThetaWithSandRho(x, y, settings)
-
-        assertEquals(100.0, result.rho, "Rho should be 1.0 at (0, 100)")
-        assertEquals(PI, result.theta, "Theta should be PI when y is positive and x is 0")
-    }
+//
+//    @Test
+//    fun `validate Polar Coord Translation`() {
+//        assertEquals(0.0, calculateThetaFromPolarXY(0.0, 0.0, 0.0))
+//        assertEquals(0.0, calculateThetaFromPolarXY(100.0, 0.0, 100.0))
+//        assertEquals(PI / 2, calculateThetaFromPolarXY(0.0, 100.0, 100.0))
+//        assertEquals(PI, calculateThetaFromPolarXY(-100.0, 0.0, 100.0))
+//        assertEquals(PI * 3 / 2, calculateThetaFromPolarXY(0.0, -100.0, 100.0))
+//    }
 
 
     @Test

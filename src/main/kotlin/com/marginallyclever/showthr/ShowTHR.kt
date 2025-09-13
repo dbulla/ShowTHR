@@ -112,11 +112,22 @@ object ShowTHR {
         val imageGuiCounter = Counter(0) // to accurately be able to skip intermediate images, we need to continue this across lines of the thr file.
 
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-        sandSimulation.setTarget(thetaRhos.first())
+        sandSimulation.setTargets(thetaRhos.first())
         thetaRhos.forEachIndexed { index, it ->
             //            println("Processing line $index of $numLines")
-            previousPercentage =
-                moveToNextThetaRho(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime, imageNameCounter, imageRenderer)
+            previousPercentage = moveToNextThetaRho(
+                it,
+                sandSimulation,
+                index,
+                previousPercentage,
+                stringBuilder,
+                shortFilename,
+                numLines,
+                startTime,
+                imageNameCounter,
+                imageRenderer,
+                imageGuiCounter
+            )
         }
     }
 
@@ -132,46 +143,40 @@ object ShowTHR {
         startTime: kotlin.time.Instant,
         imageNameCounter: Counter,
         imageRenderer: ImageRenderer,
+        imageGuiCounter: Counter,
     ): Double {
 
         if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setInitialBallPosition(normalizedThetaRho)
+            sandSimulation.setInitialBallPositions(normalizedThetaRho)
         }
 
-        sandSimulation.setTarget(normalizedThetaRho)
-        var count = 0
-        while (!sandSimulation.ballAtTarget()) { // todo move balls into showTHR, and pass that as an argument?
-            sandSimulation.updateBall1()
-            checkToSeeIfImageShouldBeWritten(count, index, numLines, imageRenderer, imageNameCounter)
-            count++
+        sandSimulation.setTargets(normalizedThetaRho)
+        while (!sandSimulation.ballsAtTarget()) {
+            sandSimulation.updateBalls()
+            checkToSeeIfImageShouldBeWritten(imageGuiCounter, index, numLines, imageRenderer, imageNameCounter)
+            imageGuiCounter.increment()
         }
 
-        if (settings.useTwoBalls) {
-            count = 0
-            while (!sandSimulation.ball2AtTarget()) {
-                sandSimulation.updateBall2()
-                checkToSeeIfImageShouldBeWritten(count, index, numLines, imageRenderer, imageNameCounter)
-                count++
-            }
-        }
         val newPreviousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
         return newPreviousPercentage
     }
 
-    private fun checkToSeeIfImageShouldBeWritten(count: Int, index: Int, numLines: Int, imageRenderer: ImageRenderer, imageNameCounter: Counter) {
+    private fun checkToSeeIfImageShouldBeWritten(imageGuiCounter: Counter, index: Int, numLines: Int, imageRenderer: ImageRenderer, imageNameCounter: Counter) {
         //        println("count = $count, settings.imageSkipCount=${settings.imageSkipCount}")
-        if (count % settings.imageSkipCount == 0 || index == numLines - 1) {
+        // every so often - or if we're at the end of the track - write the image
+        if (imageGuiCounter.count % settings.imageSkipCount == 0 || index == numLines - 1) {
             //            println("Writing image $index")
             val image = imageRenderer.renderSandImage(settings)
             if (settings.makeAnimation) {
-                writeImageWithCounterNameAndIncrementCounter(imageNameCounter, imageRenderer)
+                saveImageToDiskWithCounterName(imageNameCounter, imageRenderer)
+                imageNameCounter.increment()
             }
         }
     }
 
     /** We use the counter to name the image files - it's a simple way to ensure that the images are in order and don't overwrite each other */
-    private fun writeImageWithCounterNameAndIncrementCounter(imageNameCounter: Counter, imageRenderer: ImageRenderer) {
-        val indexString = String.format("%06d", imageNameCounter.increment())
+    private fun saveImageToDiskWithCounterName(imageNameCounter: Counter, imageRenderer: ImageRenderer) {
+        val indexString = String.format("%06d", imageNameCounter.count)
         val file = File("animationImages/image_$indexString.png")
         val parentFile = file.parentFile
         parentFile.mkdirs() // make the parent dir if it doesn't exist'
