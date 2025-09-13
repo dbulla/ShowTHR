@@ -18,5 +18,5 @@ echo "Copying & renaming images"
 ./gradlew runRenamer --args="-sourceDir $sourceDir -targetDir $targetDir"
 rm $mpegName
 echo "Creating animation"
-ffmpeg -f image2 -s 1500x1500 -i $targetDir/images_%5d.png -vcodec libx264 -crf 25 -n -pix_fmt yuv420p  $mpegName
+ffmpeg -f image2 -s 1500x1500 -i $targetDir/images_%6d.png -vcodec libx264 -crf 25 -n -pix_fmt yuv420p  $mpegName
 open $mpegName

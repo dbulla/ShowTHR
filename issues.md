@@ -50,7 +50,7 @@
       - [ ] Draw Image
       - [ ] Status of drawn image
       - [ ] Fetch drawn image
-      - [ ] Delete image
+        - [ ] Delete image after fetch
     - [ ] Main Mac will have a program that coordinates with the workers
       - [ ] Can they broadcast availability to server at startup?
         - [ ] Need to know server IP

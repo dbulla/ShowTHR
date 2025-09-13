@@ -4,6 +4,9 @@ import com.nurflugel.showthr.NormalizedThetaRho
 import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Settings.Companion.RELAX_MARGIN
 import com.nurflugel.showthr.Utilities.Companion.calculateDistanceRhoTheta
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.min
 
 // Ball class for handling ball movement and position
 internal class Ball(val name: String, val radius: Int, val settings: Settings) {
@@ -31,24 +34,55 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
      *
      * This is fixed in SandSimulation.expandSequence(), where we tweak the initial theta and rho to produce an expanded list where the current
      * functionality will work even though it's wrong.
+     *
+     * @return True if at target, false if not yet
      */
-    fun updatePosition(settings: Settings) {
+    fun updatePosition(): Boolean {
 
         val distance = calculateDistanceRhoTheta(position, target)
-        if (settings.proposedLength >= distance || (distance - settings.proposedLength) < 0.0001) { // we're there!  Or, close enough.   todo be clever enough to do this w/o the ||
+        val proposedLength = settings.proposedLength
+        val weOvershot = proposedLength > distance
+        val weAreThere = (distance - proposedLength) < 0.0001
+        val thetaDistance = abs(target.theta - position.theta)
+
+        val closeEnoughDistance = weAreThere || weOvershot
+        val closeEnoughTheta = thetaDistance < 0.0001
+
+        if (closeEnoughDistance && closeEnoughTheta) { // we're there!  Or, close enough.
             atTarget = true
             position = target
-            println("$name at target, distance: $distance, settings.proposedLength: ${settings.proposedLength}")
+            return true
+            //            println("$name at target, distance: $distance, settings.proposedLength: ${settings.proposedLength}")
         }
-        else {
-            val percentageOfProposedLength = settings.proposedLength / distance
+        else {  // todo - if closeEnoughDistance, then check for theta - here, since closeEnoughDistance is true, we'd overshoot if we tried it again,
+            val percentageOfProposedLength = proposedLength / distance
+            //            val percentageOfProposedTheta = proposedLength / distance
             // Now, assume a constant change in theta and rho (reasonable, especially for small changes)
-            val deltaRho = percentageOfProposedLength * (target.rho - position.rho)
-            val deltaTheta = percentageOfProposedLength * (target.theta - position.theta)
+            var deltaRho = 0.0
+            var deltaTheta = 0.0
+            when {
+                percentageOfProposedLength < 1.0 -> { // we'll need at least one more step to get to the target
+                    deltaRho = percentageOfProposedLength * (target.rho - position.rho)
+                    deltaTheta = percentageOfProposedLength * (target.theta - position.theta)
+                }
+
+                else                             -> {
+                    deltaRho = 0.0  // we're at the right rho, but theta is off - adjust theta
+                    deltaTheta = min(PI / 20, (target.theta - position.theta))
+                }
+            }
+            //                        val deltaTheta = percentageOfProposedLength * (target.theta - position.theta)
+//            println("$name Delta theta: $deltaTheta, Delta rho: $deltaRho")
             val updatedTheta = position.theta + deltaTheta
             val updatedRho = position.rho + deltaRho
             position = NormalizedThetaRho(updatedTheta, updatedRho)
-//            println("theta: ${position.theta}, rho: ${position.rho}, distance: $distance, percentageOfProposedLength=$percentageOfProposedLength in pixels: ${percentageOfProposedLength * settings.tableDiameter} ")
+            if (deltaRho < .00001 && deltaTheta < .00001) {
+                atTarget = true
+                return true
+            }
+            else
+                return false
+            //            println("theta: ${position.theta}, rho: ${position.rho}, distance: $distance, percentageOfProposedLength=$percentageOfProposedLength in pixels: ${percentageOfProposedLength * settings.tableDiameter} ")
         }
     }
 

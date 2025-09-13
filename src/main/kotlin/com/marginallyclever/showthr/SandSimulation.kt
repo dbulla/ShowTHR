@@ -52,6 +52,7 @@ class SandSimulation(val settings: Settings) {
             val ball2ThetaRho = getBall2ThetaRho(normalizedThetaRho)
             ball2.setTarget(ball2ThetaRho)
             startPosition2 = ball2.position // we need this for the relaxation step
+            //            println("setTarget - ball 1 target: $normalizedThetaRho, ball 2 target: $ball2ThetaRho")
         }
     }
 
@@ -65,20 +66,21 @@ class SandSimulation(val settings: Settings) {
         }
     }
 
-    fun update() {
-        ball.updatePosition(settings)
-        //        println("Ball1: ${ball.position}")
-        if (settings.useTwoBalls) {
-            ball2.updatePosition(settings)
-            //            println("Ball1: ${ball.position}, Ball2: ${ball2.position}")
-        }
-        makeBallPushSand() // push the sand up
-        relaxSand() // let the sand settle
+    fun updateBall1() {
+        //        if (!ball.updatePosition()) {
+        ball.updatePosition()
+        // the next two lines are the bottleneck in the app's performance.
+        makeBallPushSand(ball) // push the sand up
+        relaxSand(startPosition, ball) // let the sand settle
+//        println("Ball1: ${ball.position}")
     }
 
-    private fun makeBallPushSand() {
-        makeBallPushSand(ball)
-        if (settings.useTwoBalls) makeBallPushSand(ball2)
+    fun updateBall2() {
+        //        if (!ball2.updatePosition()) {
+        ball2.updatePosition()
+        makeBallPushSand(ball2) // push the sand up
+        relaxSand(startPosition2, ball2) // let the sand settle
+//        println("Ball2: ${ball2.position}")
     }
 
     /**
@@ -102,6 +104,7 @@ class SandSimulation(val settings: Settings) {
                             // if the amount of sand here (A) is greater than the height of the ball at this point (B)
                             // displace A-B away from the center of the ball.
                             var sandHere = sandGrid[i][j]
+                            // heightOfBall is the distance from the surface of the ball to the top of the table at the given distance from the center of the ball
                             val heightOfBall = max(0.0, 1 - cos(max(0.0, 1 - distance / radius)))
                             if (sandHere >= heightOfBall) {
                                 var toMove = sandHere - heightOfBall
@@ -122,11 +125,11 @@ class SandSimulation(val settings: Settings) {
 
     private fun isInsideTable(x: Int, y: Int): Boolean {
         return when {
-            x < 0                       -> false
-            y < 0                       -> false
+            x < 0                      -> false
+            y < 0                      -> false
             x > settings.tableDiameter -> false
             y > settings.tableDiameter -> false
-            else                        -> true
+            else                       -> true
             //            else -> {
             //                val isXInside = x in 0..<settings.tableDiameter
             //                val isYInside = y in 0..<settings.tableDiameter
@@ -138,12 +141,6 @@ class SandSimulation(val settings: Settings) {
     /**
      * Make the sand naturally collapse into a more stable shape.
      */
-    @Suppress("DuplicatedCode")
-    private fun relaxSand() {
-        relaxSand(startPosition, ball)
-        if (settings.useTwoBalls) relaxSand(startPosition2, ball2)
-    }
-
     private fun relaxSand(startPosition: NormalizedThetaRho, ball: Ball) {
         var startX = calculateSandX(startPosition, settings).toInt()
         var startY = calculateSandY(startPosition, settings).toInt()
@@ -223,6 +220,10 @@ class SandSimulation(val settings: Settings) {
 
     fun ballAtTarget(): Boolean {
         return ball.atTarget
+    }
+
+    fun ball2AtTarget(): Boolean {
+        return ball2.atTarget
     }
 
 

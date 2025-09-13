@@ -3,6 +3,9 @@ package com.nurflugel.showthr
 import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
+// this, combined with delta time, determines how much the ball "moves" per instant
+private const val PROPOSED_LENGTH_MULTIPLIER = 10
+private const val DELTA_TIME = 0.2
 
 class Settings {
     companion object {
@@ -41,7 +44,7 @@ class Settings {
 
     var isHeadless = false
     var maxRadius = tableRadius - 20
-    val deltaTime = 0.2 // todo possibly add this to settings
+
     val batchTracks: MutableList<String> = mutableListOf()
     var batchTrackFile: String? = null
 
@@ -198,7 +201,7 @@ class Settings {
         centerX = tableRadius
         centerY = centerX
         maxRadius = tableRadius - 20
-        proposedLength = 2 * speed * deltaTime / (maxRadius * 2.0 )
+        proposedLength = PROPOSED_LENGTH_MULTIPLIER * speed * DELTA_TIME / (maxRadius * 2.0)
     }
 
     // verify the file extension is supported by ImageIO
