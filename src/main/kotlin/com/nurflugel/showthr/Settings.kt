@@ -4,7 +4,7 @@ import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
 // this, combined with delta time, determines how much the ball "moves" per instant
-private const val PROPOSED_LENGTH_MULTIPLIER = 10.0
+private const val PROPOSED_LENGTH_MULTIPLIER = 15.0
 private const val DELTA_TIME = 0.2
 
 class Settings {
@@ -202,6 +202,7 @@ class Settings {
         centerY = centerX
         maxRadius = tableRadius - 20
         proposedLength = PROPOSED_LENGTH_MULTIPLIER * speed * DELTA_TIME / maxRadius
+//        proposedLength = .0002
     }
 
     // verify the file extension is supported by ImageIO

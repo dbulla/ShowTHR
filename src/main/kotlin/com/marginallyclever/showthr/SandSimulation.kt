@@ -25,10 +25,10 @@ class SandSimulation(val settings: Settings) {
     private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball, slightly smaller than the first
 
     init {
-//        ball1.setPosition(NormalizedThetaRho(0.0, 0.0))
-//        if (settings.useTwoBalls) {
-//            ball2.setPosition(getBall2ThetaRho(ball1.currentPosition))
-//        }
+        //        ball1.setPosition(NormalizedThetaRho(0.0, 0.0))
+        //        if (settings.useTwoBalls) {
+        //            ball2.setPosition(getBall2ThetaRho(ball1.currentPosition))
+        //        }
 
         // Initialize sand grid to uniform density
         initializeSandGrid(settings.initialSandDepth)
@@ -76,12 +76,13 @@ class SandSimulation(val settings: Settings) {
         val ballX = calculateSandX(ball.currentPosition, settings).toInt()
         val ballY = calculateSandY(ball.currentPosition, settings).toInt()
         val radius = ball.radius
+        val tableDiameter = settings.tableDiameter
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
-                if (i in 0..<settings.tableDiameter && j >= 0 && j < settings.tableDiameter) {
+                if (i in 0..<tableDiameter && j >= 0 && j < tableDiameter) {
                     val dx = i - ballX
                     val dy = j - ballY
-                    if (isInsideTable(i + dx, j + dy)) {
+                    if (isInsideTable(i + dx, j + dy, tableDiameter)) {
                         // Distance from the ball's center
                         val distance = sqrt((dx * dx + dy * dy).toDouble())
                         if (distance <= radius) {
@@ -116,7 +117,7 @@ class SandSimulation(val settings: Settings) {
         var startY = calculateSandY(ball.startPosition, settings).toInt()
         var endX = calculateSandY(ball.currentPosition, settings).toInt()
         var endY = calculateSandY(ball.currentPosition, settings).toInt()
-
+        val tableDiameter = settings.tableDiameter
         if (startX > endX) {
             val temp = startX
             startX = endX
@@ -136,8 +137,8 @@ class SandSimulation(val settings: Settings) {
 
         if (startX < 0) startX = 0
         if (startY < 0) startY = 0
-        if (endX >= settings.tableDiameter) endX = settings.tableDiameter - 1
-        if (endY >= settings.tableDiameter) endY = settings.tableDiameter - 1
+        if (endX >= tableDiameter) endX = tableDiameter - 1
+        if (endY >= tableDiameter) endY = tableDiameter - 1
 
         var settled: Boolean
         do {
@@ -151,19 +152,19 @@ class SandSimulation(val settings: Settings) {
                     var neighborIndex = 0
 
                     // Check up, down, left, right neighbors
-                    if (isInsideTable(x - 1, y) && sandGrid[x - 1][y] < sandHeightHereMinusSlope) {
+                    if (isInsideTable(x - 1, y, tableDiameter) && sandGrid[x - 1][y] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x - 1
                         lowerNeighbors[neighborIndex++] = y
                     }
-                    if (isInsideTable(x + 1, y) && sandGrid[x + 1][y] < sandHeightHereMinusSlope) {
+                    if (isInsideTable(x + 1, y, tableDiameter) && sandGrid[x + 1][y] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x + 1
                         lowerNeighbors[neighborIndex++] = y
                     }
-                    if (isInsideTable(x, y - 1) && sandGrid[x][y - 1] < sandHeightHereMinusSlope) {
+                    if (isInsideTable(x, y - 1, tableDiameter) && sandGrid[x][y - 1] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x
                         lowerNeighbors[neighborIndex++] = y - 1
                     }
-                    if (isInsideTable(x, y + 1) && sandGrid[x][y + 1] < sandHeightHereMinusSlope) {
+                    if (isInsideTable(x, y + 1, tableDiameter) && sandGrid[x][y + 1] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x
                         lowerNeighbors[neighborIndex++] = y + 1
                     }
@@ -211,19 +212,20 @@ class SandSimulation(val settings: Settings) {
     }
 
 
-    private fun isInsideTable(x: Int, y: Int): Boolean {
-        return when {
-            x < 0                      -> false
-            y < 0                      -> false
-            x > settings.tableDiameter -> false
-            y > settings.tableDiameter -> false
-            else                       -> true
+    private fun isInsideTable(x: Int, y: Int, tableDiameter: Int): Boolean {
+       return true
+//        return when {
+//            x < 0             -> false
+//            y < 0             -> false
+//            x > tableDiameter -> false
+//            y > tableDiameter -> false
+//            else              -> true
             //            else -> {
             //                val isXInside = x in 0..<settings.tableDiameter
             //                val isYInside = y in 0..<settings.tableDiameter
             //                return isXInside && isYInside
             //            }
-        }
+//        }
     }
 
 }

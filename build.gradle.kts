@@ -22,8 +22,9 @@ dependencies {
     implementation("javax.vecmath:vecmath:1.5.2")
     implementation("me.saharnooby:qoi-java:1.2.1")
     implementation("org.sejda.imageio:webp-imageio:0.1.6")
-    implementation("com.google.guava:guava:33.4.8-jre")
+    implementation("com.google.guava:guava:33.5.0-jre")
     implementation("commons-io:commons-io:2.20.0")
+    implementation("com.google.code.gson:gson:2.13.2")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -49,7 +50,7 @@ tasks.register<JavaExec>("runRenamer") {
     group = "application"
     description = "Runs Renamer"
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass = "com.nurflugel.showthr.Renamer"
+    mainClass = "com.nurflugel.showthr.utilities.Renamer"
     //    args( "/Users/douglas_bullard/dev/github/douglasBullard/sisyphus-table-pattern-maker/images4")
 }
 
@@ -57,5 +58,5 @@ tasks.register<JavaExec>("runAnalyzeOutput") {
     group = "application"
     description = "Runs AnalyzeOutput"
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass = "com.nurflugel.showthr.AnalyzeOutput"
+    mainClass = "com.nurflugel.showthr.utilities.AnalyzeOutput"
 }

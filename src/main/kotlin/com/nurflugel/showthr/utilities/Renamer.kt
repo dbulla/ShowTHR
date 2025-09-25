@@ -1,4 +1,4 @@
-package com.nurflugel.showthr
+package com.nurflugel.showthr.utilities
 
 import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.io.File
@@ -13,7 +13,7 @@ import java.io.File
 object Renamer {
     @JvmStatic
     fun main(args: Array<String>) {
-
+        println("Renamer - $args")
         lateinit var sourceDirectory: File
         lateinit var targetDirectory: File
 
@@ -39,12 +39,23 @@ object Renamer {
             return
         }
 
-        sourceDirectory.listFiles()!!
+        println("Renaming files in ${sourceDirectory.absolutePath} to ${targetDirectory.absolutePath}")
+
+        // We want to sort the files based on the number embedded in the file name, so we can copy them in order.
+        // Why not just let the OS sort it?  Because OS X does really wierd sorting on file names like this, and cannot
+        // be trusted to do it right.  So, sort them ourselves.
+        val sortedFiles = sourceDirectory
+            .listFiles()!!
             .filter { it.name.startsWith("clock") }
-            .sortedBy { it.name }
-            .mapIndexed { index, s -> index to s } // make a list of pairs, consisting of the index number and the file
-            .forEach {
-                val paddedNumber = it.first.toString().padStart(6, '0')
+            .sortedBy { // the file hame has a number in it (like 0.8609375), strip that out of the name and sort on that
+                it.name.substringAfterLast("_")
+                    .substringBefore(".png")
+                    .toDouble()
+            }
+        // Now, go through the sorted list and copy the files to the new directory, renaming them as we go along.
+        sortedFiles
+            .forEachIndexed { index, sourceFile ->
+                val paddedNumber = index.toString().padStart(6, '0')
                 // figure out the new filename
                 val newImageName = "images_${paddedNumber}.png"
                 val renamedImageFile = File(targetDirectory, newImageName)
@@ -52,8 +63,8 @@ object Renamer {
                 when { // skip if the target file already exists
                     renamedImageFile.exists() -> println("Skipping $newImageName - file already exists")
                     else                      -> {
-                        println("Renaming ${it.second} to $newImageName")
-                        it.second.copyTo(renamedImageFile)
+                        println("Copying/Renaming ${sourceFile.name} to $newImageName")
+                        sourceFile.copyTo(renamedImageFile)
                     }
                 }
             }
