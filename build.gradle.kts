@@ -4,8 +4,8 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    id("com.gradleup.shadow") version "9.1.0"
-    id("com.github.ben-manes.versions") version "0.52.0"
+    id("com.gradleup.shadow") version "9.2.1"
+    id("com.github.ben-manes.versions") version "0.53.0"
     id("com.dorongold.task-tree") version "4.0.1"
 }
 

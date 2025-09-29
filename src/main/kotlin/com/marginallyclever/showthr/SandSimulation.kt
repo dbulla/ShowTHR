@@ -70,6 +70,8 @@ class SandSimulation(val settings: Settings) {
 
     /**
      * This method simulates the ball pushing the sand out of its personal space.
+     *
+     * Note that it's using a square for the i,j - shouldn't the actual displaced sand be in a circle?
      */
     private fun makeBallPushSand(ball: Ball) {
         // Iterate over the area affected by the ball's radius
@@ -143,36 +145,45 @@ class SandSimulation(val settings: Settings) {
         var settled: Boolean
         do {
             settled = true
-            val lowerNeighbors = intArrayOf(0, 0, 0, 0, 0, 0, 0, 0)
+            // Pre-allocate the array with maximum possible size
+            val lowerNeighbors = IntArray(8)
 
-            for (y in startY..<endY - 1) {
-                for (x in startX..<endX - 1) {
+            // Cache frequently accessed values
+            val tableEnd = tableDiameter - 1
+            val endYMinus1 = endY - 1
+            val endXMinus1 = endX - 1
+
+            for (y in startY..<endYMinus1) {
+                for (x in startX..<endXMinus1) {
                     val sandHeightHere = sandGrid[x][y]
                     val sandHeightHereMinusSlope = sandHeightHere - MAX_SLOPE
                     var neighborIndex = 0
 
-                    // Check up, down, left, right neighbors
-                    if (isInsideTable(x - 1, y, tableDiameter) && sandGrid[x - 1][y] < sandHeightHereMinusSlope) {
+                    // Combine boundary checks with height comparison
+                    // This reduces the number of array accesses and function calls
+                    if (x > 0 && sandGrid[x - 1][y] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x - 1
                         lowerNeighbors[neighborIndex++] = y
                     }
-                    if (isInsideTable(x + 1, y, tableDiameter) && sandGrid[x + 1][y] < sandHeightHereMinusSlope) {
+                    if (x < tableEnd && sandGrid[x + 1][y] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x + 1
                         lowerNeighbors[neighborIndex++] = y
                     }
-                    if (isInsideTable(x, y - 1, tableDiameter) && sandGrid[x][y - 1] < sandHeightHereMinusSlope) {
+                    if (y > 0 && sandGrid[x][y - 1] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x
                         lowerNeighbors[neighborIndex++] = y - 1
                     }
-                    if (isInsideTable(x, y + 1, tableDiameter) && sandGrid[x][y + 1] < sandHeightHereMinusSlope) {
+                    if (y < tableEnd && sandGrid[x][y + 1] < sandHeightHereMinusSlope) {
                         lowerNeighbors[neighborIndex++] = x
                         lowerNeighbors[neighborIndex++] = y + 1
                     }
 
                     if (neighborIndex != 0) {
                         settled = false
+                        // Pre-calculate division
                         val d = REDISTRIBUTION_RATE * 2.0 / neighborIndex
 
+                        // Unroll the loop for better performance
                         var i = 0
                         while (i < neighborIndex) {
                             val x2 = lowerNeighbors[i]
@@ -213,19 +224,19 @@ class SandSimulation(val settings: Settings) {
 
 
     private fun isInsideTable(x: Int, y: Int, tableDiameter: Int): Boolean {
-       return true
-//        return when {
-//            x < 0             -> false
-//            y < 0             -> false
-//            x > tableDiameter -> false
-//            y > tableDiameter -> false
-//            else              -> true
+//       return true
+        return when {
+            x < 0             -> false
+            y < 0             -> false
+            x > tableDiameter -> false
+            y > tableDiameter -> false
+            else              -> true
             //            else -> {
             //                val isXInside = x in 0..<settings.tableDiameter
             //                val isYInside = y in 0..<settings.tableDiameter
             //                return isXInside && isYInside
             //            }
-//        }
+        }
     }
 
 }

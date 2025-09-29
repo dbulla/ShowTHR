@@ -11,12 +11,13 @@ targetDir="../imagesNamed"
 mpegName="5.0_to_15.0_1500.mp4"
 
 # Clean out previous files
-rm -rf $targetDir
+# rm -rf $targetDir
 
 mkdir -p $sourceDir
 mkdir -p $targetDir
 echo "Running rsync to fetch fresh images from iMac"
 #rsync -v --ignore-existing /Volumes/douglas_bullard/dev/github/douglasBullard/sisyphus-table-pattern-maker/tracks4/*.png $sourceDir/
+echo "rsync -v --ignore-existing /Volumes/douglas_bullard/dev/github/douglasBullard/tracks6/*.png $sourceDir/"
 rsync -v --ignore-existing /Volumes/douglas_bullard/dev/github/douglasBullard/tracks6/*.png $sourceDir/
 echo "Copying & renaming images"
 ./gradlew runRenamer --args="-sourceDir $sourceDir -targetDir $targetDir"
