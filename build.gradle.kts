@@ -1,10 +1,10 @@
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
 //    alias(libs.plugins.kotlin.jvm)
-    kotlin("jvm") version "2.1.20-Beta2"
+    kotlin("jvm") version "2.2.20"
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    id( "com.gradleup.shadow") version "9.1.0"
+    id( "com.gradleup.shadow") version "9.2.2"
     id("com.github.ben-manes.versions") version "0.52.0"
     id("com.dorongold.task-tree") version "4.0.1"
 }
@@ -18,7 +18,7 @@ dependencies {
     implementation("javax.vecmath:vecmath:1.5.2")
     implementation("me.saharnooby:qoi-java:1.2.1")
     implementation("org.sejda.imageio:webp-imageio:0.1.6")
-    implementation("com.google.guava:guava:33.4.8-jre")
+    implementation("com.google.guava:guava:33.5.0-jre")
     implementation("commons-io:commons-io:2.20.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
