@@ -1,5 +1,7 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.RhoTheta
+import com.nurflugel.showthr.Settings
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -107,7 +109,7 @@ object ShowTHR {
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         val firstTheta = expandedSequence.first().first
         val firstRho = expandedSequence.first().second
-        sandSimulation.setTarget(firstTheta, firstRho)
+        sandSimulation.setTarget(RhoTheta(firstRho, firstTheta))
 
         expandedSequence.forEachIndexed { index, it ->
             previousPercentage = moveToNextRhoTheta(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
@@ -126,14 +128,13 @@ object ShowTHR {
         startTime: kotlin.time.Instant,
     ): Double {
 
-        val theta = it.first
-        val rho = it.second
+        val rhoTheta= RhoTheta(it.second, it.first)
 
         if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setInitialBallPosition(theta, rho)
+            sandSimulation.setInitialBallPosition(rhoTheta)
         }
 
-        sandSimulation.setTarget(theta, rho)
+        sandSimulation.setTarget(rhoTheta)
         var count = 0
         while (!sandSimulation.ballAtTarget()) {
             sandSimulation.update(settings.deltaTime)
@@ -308,19 +309,21 @@ object ShowTHR {
         print(
             """
             
-Usage: ShowTHR inputfile.thr [options]
+Usage: ShowTHR inputFile.thr [options]
 Optional:
-    -b backgroundImageName      Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
+    -b    backgroundImageName   Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
     -c                          No args, if present will generate a "clean.png" image to be used as a background image.
-    -d initialDepth             Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
-    -e shouldExpandSequences    If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
-    -h height                   Set the image height.  Default is screen height.
-    -w width                    Set the image width.  Default is screen width.
+    -d    initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
+    -e    ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
+    -h    height                Set the image height.  Default is screen height.
+    -w    width                 Set the image width.  Default is screen width.
     -skip imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
-    -o outputFilename           If present, the output file will be written to this file
+    -o    outputFilename        If present, the output file will be written to this file
     -q                          No args, if present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
     -r                          No args, if present, the .thr file will be read in reversed order.
-    -s ballSize                 Sets the ball size.  Default is 5.
+    -s    ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
+    -tableRadius                Sets the radius of the sane table.  Default is '${settings.tableDiameter}.
+    -useTwoBalls                Tantalus mode - draw with two balls
     
 Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()}
     

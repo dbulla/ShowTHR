@@ -1,4 +1,4 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
 import java.awt.Dimension
 import java.awt.Graphics

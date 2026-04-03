@@ -1,10 +1,14 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.ImageFrame
+import com.nurflugel.showthr.RhoTheta
+import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.Utilities.Companion.getArmLength
+import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
-import java.lang.Math.PI
 import javax.imageio.ImageIO
 import javax.vecmath.Vector2d
 import kotlin.math.cos
@@ -16,7 +20,7 @@ import kotlin.math.sqrt
  */
 class SandSimulation(val settings: Settings) {
 
-    private val sandGrid = Array(settings.tableRadius) { DoubleArray(settings.tableRadius) } // 2D array for sand density
+    private val sandGrid = Array(settings.tableDiameter) { DoubleArray(settings.tableDiameter) } // 2D array for sand density
     private val ball = Ball("Ball_1", settings.ballRadius, settings)
     private val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball
     private lateinit var startPosition: Vector2d
@@ -28,9 +32,10 @@ class SandSimulation(val settings: Settings) {
     val ball2RelaxedMargin = (ball2.radius * settings.RELAX_MARGIN).toInt()
 
     init {
-        ball.setPositionThetaRho(0.0, 0.0)
+        val rhoTheta = RhoTheta(0.0, 0.0)
+        ball.setPositionRhoTheta(rhoTheta)
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(PI, 1.0)
+            ball2.setPositionRhoTheta(getBall2RhoTheta(rhoTheta))
         }
 
         // Initialize sand grid to uniform density
@@ -39,32 +44,32 @@ class SandSimulation(val settings: Settings) {
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
-            else                     -> BufferedImage(settings.tableRadius, settings.tableRadius, TYPE_INT_ARGB)
+            else                     -> BufferedImage(settings.tableDiameter, settings.tableDiameter, TYPE_INT_ARGB)
         }
         if (!settings.isHeadless) imageFrame = ImageFrame(bufferedImage, settings)
     }
 
     private fun initializeSandGrid(initialSandDepth: Double) {
-        (0..<settings.tableRadius).forEach { i ->
-            (0..<settings.tableRadius).forEach { j ->
+        (0..<settings.tableDiameter).forEach { i ->
+            (0..<settings.tableDiameter).forEach { j ->
                 sandGrid[i][j] = initialSandDepth // some sand in every square
             }
         }
     }
 
     /**
-    Read in a pre-generated image of a "clean" cycle as a starting point for the sand.
-
-    Just for reference...
-    int red = (rgb>>16)&0x0ff;
-    int green=(rgb>>8) &0x0ff;
-    int blue= (rgb)    &0x0ff;
+     *    Read in a pre-generated image of a "clean" cycle as a starting point for the sand.
+     *
+     *    Just for reference...
+     *    int red = (rgb>>16)&0x0ff;
+     *    int green=(rgb>>8) &0x0ff;
+     *    int blue= (rgb)    &0x0ff;
      */
     private fun readInCleanedImage(cleanFile: File): BufferedImage {
         val backgroundImage = ImageIO.read(cleanFile)
         // set the sand height to the image
-        (0..<settings.tableRadius).forEach { i ->
-            (0..<settings.tableRadius).forEach { j ->
+        (0..<settings.tableDiameter).forEach { i ->
+            (0..<settings.tableDiameter).forEach { j ->
                 val rgb = backgroundImage.getRGB(i, j)
                 val red: Int = (rgb and 0xff0000) shr 16
                 val newLevel = red.toDouble() / 30 // 30 seems to work...
@@ -74,32 +79,33 @@ class SandSimulation(val settings: Settings) {
         return backgroundImage
     }
 
-    fun setTarget(theta: Double, rho: Double) {
-        ball.setTargetThetaRho(theta, rho)
+    fun setTarget(rhoTheta: RhoTheta) {
+        ball.setTargetRhoTheta(rhoTheta)
         startPosition = ball.position
         if (settings.useTwoBalls) {
-            ball2.setTargetThetaRho(getBall2Theta(theta), getBall2Rho(rho))
+            val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
+            ball2.setTargetRhoTheta(ball2RhoTheta)
             startPosition2 = ball2.position // we need this for the relaxation step
         }
     }
 
-    fun setInitialBallPosition(theta: Double, rho: Double) {
-        ball.setPositionThetaRho(theta, rho)
-        ball.setTargetThetaRho(theta, rho)
+    fun setInitialBallPosition(rhoTheta: RhoTheta) {
+        ball.setPositionRhoTheta(rhoTheta)
+        ball.setTargetRhoTheta(rhoTheta)
         if (settings.useTwoBalls) {
-            ball2.setPositionThetaRho(getBall2Theta(theta), getBall2Rho(rho))
-            ball2.setTargetThetaRho(getBall2Theta(theta), getBall2Rho(rho))
+            val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
+            ball2.setPositionRhoTheta(rhoTheta)
+            ball2.setTargetRhoTheta(rhoTheta)
+            getArmLength(ball, ball2)
         }
     }
 
-    private fun getBall2Rho(rho: Double): Double = 1.0 - rho
-    private fun getBall2Theta(theta: Double): Double = theta + PI
 
     fun update(deltaTime: Double) {
         ball.updatePosition(deltaTime)
         if (settings.useTwoBalls) {
             ball2.updatePosition(deltaTime)
-//            println("Ball1: rho=${ball.getRho()}, Ball2: rho=${ball2.getRho()}")
+            getArmLength(ball, ball2)
         }
         makeBallPushSand() // push the sand up
         relaxSand() // let the sand settle
@@ -120,7 +126,7 @@ class SandSimulation(val settings: Settings) {
         val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
-                if (i in 0..<settings.tableRadius && j >= 0 && j < settings.tableRadius) {
+                if (i in 0..<settings.tableDiameter && j >= 0 && j < settings.tableDiameter) {
                     val dx = i - ballX
                     val dy = j - ballY
                     if (isInsideTable(i + dx, j + dy)) {
@@ -150,8 +156,8 @@ class SandSimulation(val settings: Settings) {
     }
 
     private fun isInsideTable(x: Int, y: Int): Boolean {
-        val isXInside = x in 0..<settings.tableRadius
-        val isYInside = y in 0..<settings.tableRadius
+        val isXInside = x in 0..<settings.tableDiameter
+        val isYInside = y in 0..<settings.tableDiameter
         return isXInside && isYInside
     }
 
@@ -189,8 +195,8 @@ class SandSimulation(val settings: Settings) {
 
         if (startX < 0) startX = 0
         if (startY < 0) startY = 0
-        if (endX >= settings.tableRadius) endX = settings.tableRadius - 1
-        if (endY >= settings.tableRadius) endY = settings.tableRadius - 1
+        if (endX >= settings.tableDiameter) endX = settings.tableDiameter - 1
+        if (endY >= settings.tableDiameter) endY = settings.tableDiameter - 1
 
         var settled: Boolean
         do {
@@ -255,8 +261,8 @@ class SandSimulation(val settings: Settings) {
         //        }
         //        println("max = ${max}")
 
-        for (i in 0..<settings.tableRadius) {
-            for (j in 0..<settings.tableRadius) {
+        for (i in 0..<settings.tableDiameter) {
+            for (j in 0..<settings.tableDiameter) {
                 val gray = minOf(255, (sandGrid[i][j] * 30).toInt()) // Simplified calculation
                 bufferedImage.setRGB(i, j, encode32bit(gray))
             }
