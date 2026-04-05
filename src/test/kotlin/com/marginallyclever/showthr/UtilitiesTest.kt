@@ -2,7 +2,7 @@ package com.marginallyclever.showthr
 
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Utilities.Companion.calculateRho
-import com.nurflugel.showthr.Utilities.Companion.calculateTheta
+import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
 import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
@@ -11,7 +11,6 @@ import java.lang.Math.PI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -189,7 +188,7 @@ class UtilitiesTest {
         val settings = Settings().apply { tableDiameter = 200; calculateCenter() }
         val x = 200.0
         val y = 100.0
-        val result = calculateTheta(x, y, settings)
+        val result = calculateThetaInDegrees(x, y, settings)
         assertEquals(0.0, result, "calculateTheta should return 0 degrees when the point is on the positive X-axis")
     }
 
@@ -198,7 +197,7 @@ class UtilitiesTest {
         val settings = Settings().apply { tableDiameter = 200; calculateCenter() }
         val x = 100.0
         val y = 200.0
-        val result = calculateTheta(x, y, settings)
+        val result = calculateThetaInDegrees(x, y, settings)
         assertEquals(90.0, result, "calculateTheta should return 90 degrees when the point is on the positive Y-axis")
     }
 
@@ -207,7 +206,7 @@ class UtilitiesTest {
         val settings = Settings().apply { tableDiameter = 200; calculateCenter() }
         val x = 0.0
         val y = 100.0
-        val result = calculateTheta(x, y, settings)
+        val result = calculateThetaInDegrees(x, y, settings)
         assertEquals(180.0, result, "calculateTheta should return 180 degrees when the point is on the negative X-axis")
     }
 
@@ -216,7 +215,7 @@ class UtilitiesTest {
         val settings = Settings().apply { tableDiameter = 200; calculateCenter() }
         val x = 100.0
         val y = 0.0
-        val result = calculateTheta(x, y, settings)
+        val result = calculateThetaInDegrees(x, y, settings)
         assertEquals(-90.0, result, "calculateTheta should return -90 degrees when the point is on the negative Y-axis")
     }
 
@@ -225,7 +224,7 @@ class UtilitiesTest {
         val settings = Settings().apply { tableDiameter = 200; calculateCenter() }
         val x = 150.0
         val y = 150.0
-        val result = calculateTheta(x, y, settings)
+        val result = calculateThetaInDegrees(x, y, settings)
         assertEquals(45.0, result, "calculateTheta should return 45 degrees when the point is in the first quadrant")
     }
 
@@ -234,7 +233,7 @@ class UtilitiesTest {
         val settings = Settings().apply { tableDiameter = 200; calculateCenter() }
         val x = 50.0
         val y = 50.0
-        val result = calculateTheta(x, y, settings)
+        val result = calculateThetaInDegrees(x, y, settings)
         assertEquals(-135.0, result, "calculateTheta should return -135 degrees when the point is in the third quadrant")
     }
 }

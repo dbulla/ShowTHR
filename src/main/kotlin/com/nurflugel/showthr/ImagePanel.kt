@@ -5,7 +5,7 @@ import java.awt.Graphics
 import java.awt.image.BufferedImage
 import javax.swing.JPanel
 
-
+/** Panel that displays the image(s) */
 class ImagePanel : JPanel() {
     private lateinit var image: BufferedImage
 

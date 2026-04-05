@@ -48,10 +48,15 @@ class Utilities {
             return normalizedRho
         }
 
+        fun calculateThetaInDegrees(x: Double, y: Double, settings: Settings): Double {
+            val theta = calculateTheta(x, y, settings) * 180 / PI
+            return theta
+        }
+
         fun calculateTheta(x: Double, y: Double, settings: Settings): Double {
             val actualX = x - settings.centerX
             val actualY = y - settings.centerY
-            val theta = atan2(actualY, actualX) * 180 / PI
+            val theta = atan2(actualY, actualX)
             return theta
         }
 
@@ -68,7 +73,5 @@ class Utilities {
             println(" Ball1: rho=$ball1Rho, Ball2: rho=$ball2Rho   Total of $armLength ")
             return armLength
         }
-
-
     }
 }

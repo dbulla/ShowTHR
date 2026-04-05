@@ -35,7 +35,8 @@ class SandSimulation(val settings: Settings) {
         val rhoTheta = RhoTheta(0.0, 0.0)
         ball.setPositionRhoTheta(rhoTheta)
         if (settings.useTwoBalls) {
-            ball2.setPositionRhoTheta(getBall2RhoTheta(rhoTheta))
+            val rhoTheta2 = getBall2RhoTheta(rhoTheta)
+            ball2.setPositionRhoTheta(rhoTheta2)
         }
 
         // Initialize sand grid to uniform density
@@ -94,8 +95,8 @@ class SandSimulation(val settings: Settings) {
         ball.setTargetRhoTheta(rhoTheta)
         if (settings.useTwoBalls) {
             val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
-            ball2.setPositionRhoTheta(rhoTheta)
-            ball2.setTargetRhoTheta(rhoTheta)
+            ball2.setPositionRhoTheta(ball2RhoTheta)
+            ball2.setTargetRhoTheta(ball2RhoTheta)
             getArmLength(ball, ball2)
         }
     }
@@ -167,7 +168,8 @@ class SandSimulation(val settings: Settings) {
     @Suppress("DuplicatedCode")
     private fun relaxSand() {
         relaxSand(startPosition, ball, ballRelaxedMargin)
-        if (settings.useTwoBalls) relaxSand(startPosition2, ball2, ball2RelaxedMargin)
+        if (settings.useTwoBalls)
+            relaxSand(startPosition2, ball2, ball2RelaxedMargin)
     }
 
     private fun relaxSand(startPosition: Vector2d, ball: Ball, ballRelaxedMargin: Int) {

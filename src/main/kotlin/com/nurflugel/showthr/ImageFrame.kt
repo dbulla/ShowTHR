@@ -8,6 +8,7 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 
+/** Frame that displays the image(s) */
 class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
 
     private val imagePanel = ImagePanel()
@@ -17,9 +18,7 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
 
         val mainPanel = JPanel(BorderLayout())
         val backgroundColor = bufferedImage.getRGB(0, 0)
-
         mainPanel.background = Color(backgroundColor)
-
 
         val scrollPane = JScrollPane(imagePanel)
         mainPanel.add(scrollPane, BorderLayout.CENTER)

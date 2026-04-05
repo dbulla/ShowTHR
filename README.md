@@ -5,7 +5,7 @@ Read a THR file and simulate the motion of a ball rolling over a table covered i
 ## Usage
 
 Get the [Release](https://github.com/MarginallyClever/ShowTHR/releases) version or build it yourself from source code.
-Run it from the command line.
+Run it from the command line:
 
 ```java -jar ShowTHR.jar <source.thr> <output> [-w <width>] [-h <height>] [-d <depth>] [-b <radius>]```
 
@@ -26,9 +26,29 @@ should produce the following:
 
 ![Example](sand_simulation.png)
 
+## Table Geometry
+The table is round, with polar coordinates that puts 0,0 at the center.  However, the sand
+is represented as a 2D array of points - and THAT has (0,0) at the corner.  So, although the tracks are lists
+of theta-rho values, these have to be converted to x,y coordinates for computational purposes.
+
+Making things tougher is that the table has a "shoulder" outside of rho=1.  So, the sand is 
+slightly larger than the table display (20 pixels), and we have to take that into account, too.
+
+So, if we have a setup like that, where's the center in the x,y coordinates of the sand matrix?
+
+Say the table is 1000 pixels wide.  So, the center would be at (500+20, 500+20).  This is a major pain!
+
+![Table Geometry](table_geometry.png)
+
+## Tantalus mode
+You can simulate having 2 balls with the "-useTwoBalls" flag.  The first ball is the "normal" 
+ball, the second is on the opposite side of the arm.
+
+
+
 ## Notes
 
-The intensity of the output image is dictated by highest peak in the sand simulation.  The output image is normalized to the range [0, 255].
+The intensity of the output image is dictated by the highest peak in the sand simulation.  The output image is normalized to the range [0, 255].
 If one point of sand is very tall, the rest of the image will be very dark.
 
 ## License

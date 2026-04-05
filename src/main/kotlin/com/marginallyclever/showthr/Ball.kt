@@ -2,10 +2,11 @@ package com.marginallyclever.showthr
 
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Utilities.Companion.calculateRho
-import com.nurflugel.showthr.Utilities.Companion.calculateTheta
+import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
 import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.Utilities.Companion.calculateTheta
 import javax.vecmath.Vector2d
 
 // Ball class for handling ball movement and position
@@ -66,15 +67,16 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
         return calculateRho(position.x, position.y, settings)
     }
 
+    /** Returns the angle in radians */
     fun getTheta(): Double {
         return calculateTheta(position.x, position.y, settings)
     }
 
     override fun toString(): String {
         val rho =       calculateRho(position.x, position.y, settings)
-        val theta =     calculateTheta(position.x, position.y, settings)
+        val theta =     calculateThetaInDegrees(position.x, position.y, settings)
         val targetRho = calculateRho(target.x, target.y, settings)
-        val targetTheta=calculateTheta(target.x, target.y, settings)
+        val targetTheta=calculateThetaInDegrees(target.x, target.y, settings)
         return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
     }
 }

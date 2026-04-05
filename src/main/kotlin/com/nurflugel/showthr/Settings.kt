@@ -14,7 +14,14 @@ class Settings {
     var shouldExpandSequences = true
     val NUMBER_OF_TURNS_TO_CLEAN = 200
     var useTwoBalls = false
-    val SHOULDER_WIDTH=20
+
+    /**
+     * At the perimeter of the table, the ball can push the sand past the 1.0 rho level - we want to see
+     * that (it looks odd if it's clipped) - so the table is actually a little larger than the rho of 1.0 - by SHOULDER_WIDTH pixels.
+     *
+     * Note that this makes all the computations nasty - what if we made the actual table width what the user entered PLUS the SHOULDER_WIDTH?
+     */
+    val SHOULDER_WIDTH = 20
 
     var ballRadius: Int = 5
     var initialSandDepth: Double = 2.0
