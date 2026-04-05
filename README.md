@@ -27,16 +27,16 @@ should produce the following:
 ![Example](sand_simulation.png)
 
 ## Table Geometry
-The table is round, with polar coordinates that puts 0,0 at the center.  However, the sand
-is represented as a 2D array of points - and THAT has (0,0) at the corner.  So, although the tracks are lists
-of theta-rho values, these have to be converted to x,y coordinates for computational purposes.
+- The table is round, with polar coordinates that puts 0,0 at the center. 
+- The sand matrix is represented as a 2D array of points - that goes from -1/2 table diameter + padding to 1/2 table diameter + padding - with (0, 0) at it's center.
+- However, the image itself is a 2D array of pixels - that goes from 0 to table diameter + 2*padding - with (0,0) at the top left corner.
+
+- So, although the tracks are lists of theta-rho values, these have to be converted to x,y coordinates for computational purposes.
 
 Making things tougher is that the table has a "shoulder" outside of rho=1.  So, the sand is 
-slightly larger than the table display (20 pixels), and we have to take that into account, too.
+slightly larger than the table we wanted (by 20 pixels, so if we'd asked for a 1000 pixels-wide table, we actually get 1040 to handle the overflow), and we have to take that into account, too.
 
-So, if we have a setup like that, where's the center in the x,y coordinates of the sand matrix?
-
-Say the table is 1000 pixels wide.  So, the center would be at (500+20, 500+20).  This is a major pain!
+The fact that the image comes out a little larger is because of the padding.  TODO - subtract the padding from the table diameter when inputting.
 
 ![Table Geometry](table_geometry.png)
 

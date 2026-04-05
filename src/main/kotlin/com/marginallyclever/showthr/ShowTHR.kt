@@ -322,7 +322,7 @@ Optional:
     -q                          No args, if present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
     -r                          No args, if present, the .thr file will be read in reversed order.
     -s    ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
-    -tableRadius                Sets the radius of the sane table.  Default is '${settings.tableDiameter}.
+    -tableDiameter              Sets the diameter of the sand table.  Default is ${settings.tableDiameterWithPadding}.
     -useTwoBalls                Tantalus mode - draw with two balls
     
 Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()}

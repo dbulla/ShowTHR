@@ -9,23 +9,21 @@ import kotlin.math.sqrt
 
 class Utilities {
     companion object {
-
+        /** X and Y are now zeroed in the center of the table */
         fun calculateY(rhoTheta: RhoTheta, settings: Settings): Double {
-            val centerY = settings.centerY
             val sin = sin(rhoTheta.theta)
             val normalizedRho = sin * rhoTheta.rho
-            val deltaY = normalizedRho * settings.maxRadius
-            val newY = centerY + deltaY
-            return newY
+            val deltaY = normalizedRho * settings.tableRadius
+            return deltaY
         }
 
+        /** X and Y are now zeroed in the center of the table */
         fun calculateX(rhoTheta: RhoTheta, settings: Settings): Double {
-            val centerX = settings.centerX
             val cos = cos(rhoTheta.theta)
-            val newXoffset = cos * rhoTheta.rho * settings.maxRadius
-            val newX = centerX + newXoffset
-            return newX
+            val newXoffset = cos * rhoTheta.rho * settings.tableRadius
+            return newXoffset
         }
+
 
         fun setValueFromArg(index: Int, args: Array<String>): String {
             if (index < args.size) {
@@ -39,24 +37,18 @@ class Utilities {
 
         // returns a normalized rho (0..1)
         fun calculateRho(x: Double, y: Double, settings: Settings): Double {
-            val actualX = x - settings.centerX
-            val actualY = y - settings.centerY
-            val rho = sqrt((actualX * actualX + actualY * actualY))
-            //            val maxRadius = settings.maxRadius
-            val maxRadius = settings.tableDiameter / 2
-            val normalizedRho = rho / maxRadius // <== this is where the evil happens... should be a "1", got 0.48
+            val rho = sqrt((x * x + y * y))
+            val normalizedRho = rho / settings.tableRadius
             return normalizedRho
         }
 
-        fun calculateThetaInDegrees(x: Double, y: Double, settings: Settings): Double {
-            val theta = calculateTheta(x, y, settings) * 180 / PI
+        fun calculateThetaInDegrees(x: Double, y: Double): Double {
+            val theta = calculateTheta(x, y) * 180 / PI
             return theta
         }
 
-        fun calculateTheta(x: Double, y: Double, settings: Settings): Double {
-            val actualX = x - settings.centerX
-            val actualY = y - settings.centerY
-            val theta = atan2(actualY, actualX)
+        fun calculateTheta(x: Double, y: Double): Double {
+            val theta = atan2(y, x)
             return theta
         }
 
@@ -67,10 +59,10 @@ class Utilities {
         }
 
         fun getArmLength(ball1: Ball, ball2: Ball): Double {
-            val ball1Rho = ball1.getRho()
-            val ball2Rho = ball2.getRho()
+            val ball1Rho = ball1.positionRhoTheta.rho
+            val ball2Rho = ball2.positionRhoTheta.rho
             val armLength = ball1Rho + ball2Rho
-            println(" Ball1: rho=$ball1Rho, Ball2: rho=$ball2Rho   Total of $armLength ")
+//            println(" Ball1: rho=$ball1Rho, Ball2: rho=$ball2Rho   Total of $armLength ")
             return armLength
         }
     }

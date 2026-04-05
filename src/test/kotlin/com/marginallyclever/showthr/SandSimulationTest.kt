@@ -24,7 +24,7 @@ class SandSimulationTest {
 
     @BeforeEach
     fun setup() {
-        settings = Settings().apply { tableDiameter = 300;calculateCenter() } // Assuming Settings has a parameterless constructor
+        settings = Settings().apply { tableDiameterWithPadding = 300; calculateCenter() } // Assuming Settings has a parameterless constructor
     }
 
     @Test
@@ -40,7 +40,7 @@ class SandSimulationTest {
 
     @Test
     fun testRho() {
-        settings = Settings().apply { tableDiameter = 1000 }
+        settings = Settings().apply { tableDiameterWithPadding = 1000 }
         settings.calculateCenter()
         val ball1 = Ball("Ball1", 10, settings)
         val ball2 = Ball("Ball2", 10, settings)
@@ -68,7 +68,7 @@ class SandSimulationTest {
     fun testSandSimulationSpiral() {
         val sandSimulation = SandSimulation(settings)
         sandSimulation.setTarget(RhoTheta(0.0, 100.0))
-        var radius = (settings.tableDiameter) / 2.0 - settings.SHOULDER_WIDTH
+        var radius = (settings.tableDiameterWithPadding) / 2.0 - settings.SHOULDER_WIDTH
         var angleInDegrees = 0.0
         for (iteration in 0..9999) {
             sandSimulation.update(0.5)
@@ -76,11 +76,11 @@ class SandSimulationTest {
                 val angleInRadians = Math.toRadians(angleInDegrees)
                 sandSimulation.setTarget(
                     RhoTheta(
-                        settings.tableDiameter / 2.0 + sin(angleInRadians) * radius,
-                        settings.tableDiameter / 2.0 + cos(angleInRadians) * radius
+                        settings.tableDiameterWithPadding / 2.0 + sin(angleInRadians) * radius,
+                        settings.tableDiameterWithPadding / 2.0 + cos(angleInRadians) * radius
                     )
                 )
-                radius = ((settings.tableDiameter ) / 2.0- settings.SHOULDER_WIDTH) - (angleInDegrees / 360.0) * 10
+                radius = ((settings.tableDiameterWithPadding) / 2.0 - settings.SHOULDER_WIDTH) - (angleInDegrees / 360.0) * 10
                 angleInDegrees += 5.0
             }
             if (iteration % 100 == 0) {
@@ -103,7 +103,7 @@ class SandSimulationTest {
     @Order(Integer.MAX_VALUE) // run this last
     @Throws(IOException::class)
     fun testSandSimulationFromFile() {
-        settings = Settings().apply { tableDiameter = 100; ballRadius=2; calculateCenter() }
+        settings = Settings().apply { tableDiameterWithPadding = 100; ballRadius = 2; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
         val showThr = ShowTHR
         showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation)

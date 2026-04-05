@@ -9,32 +9,40 @@ import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateTheta
 import javax.vecmath.Vector2d
 
-// Ball class for handling ball movement and position
+/** Ball class for handling ball movement and position
+ *
+ *
+ */
 class Ball(val name: String, val radius: Int, val settings: Settings) {
-    internal var position: Vector2d = Vector2d()
+    internal var positionXy: Vector2d = Vector2d()
+    internal var positionRhoTheta: RhoTheta = RhoTheta(0.0, 0.0)
+    internal var targetRhoTheta: RhoTheta = positionRhoTheta
     private var target: Vector2d = Vector2d()
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false
 
     fun setPositionRhoTheta(rhoTheta: RhoTheta) {
-        position.x = calculateX(rhoTheta, settings)
-        position.y = calculateY(rhoTheta, settings)
-//        println("$name rho: $rho")
+        positionRhoTheta = rhoTheta
+        positionXy.x = calculateX(rhoTheta, settings)
+        positionXy.y = calculateY(rhoTheta, settings)
+        //        println("$name rho: $rho")
     }
 
     fun setTargetXY(x: Double, y: Double) {
         target[x] = y
         val diff = Vector2d(target)
-        diff.sub(position)
+        diff.sub(positionXy)
         atTarget = diff.lengthSquared() < 0.1
     }
 
     fun setTargetRhoTheta(rhoTheta: RhoTheta) {
+        targetRhoTheta = rhoTheta
         val x = calculateX(rhoTheta, settings)
         val y = calculateY(rhoTheta, settings)
-        target[x] = y
+        target.set(x, y)
+//        target[x] = y  //todo this seems wierd...
         val diff = Vector2d(target)
-        diff.sub(position)
+        diff.sub(positionXy)
         atTarget = diff.lengthSquared() < 0.1
     }
 
@@ -49,34 +57,38 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
      */
     fun updatePosition(deltaTime: Double) {
         val direction = Vector2d(target)
-        direction.sub(position)
+        direction.sub(positionXy)
         val len = direction.lengthSquared()
         if (len < speed * deltaTime) {
-            position.set(target)
+            positionXy.set(target)
             atTarget = true
         }
         else {
             direction.normalize()
             direction.scale(speed * deltaTime)
-            position.add(direction)
+            positionXy.add(direction)
             atTarget = false
         }
+        // make sure we have a valid rho and theta
+//        positionRhoTheta = getRhoTheta()
+        positionRhoTheta = RhoTheta(calculateRho(positionXy.x, positionXy.y, settings), calculateTheta(positionXy.x, positionXy.y))
     }
 
-    fun getRho(): Double {
-        return calculateRho(position.x, position.y, settings)
+    fun getRhoTheta(): RhoTheta {
+//        return RhoTheta(calculateRho(positionXy.x, positionXy.y, settings), calculateTheta(positionXy.x, positionXy.y))
+        return positionRhoTheta
     }
 
     /** Returns the angle in radians */
-    fun getTheta(): Double {
-        return calculateTheta(position.x, position.y, settings)
-    }
+    //    fun getTheta(): Double {
+    //        return calculateTheta(positionXy.x, positionXy.y, settings)
+    //    }
 
     override fun toString(): String {
-        val rho =       calculateRho(position.x, position.y, settings)
-        val theta =     calculateThetaInDegrees(position.x, position.y, settings)
+        val rho = calculateRho(positionXy.x, positionXy.y, settings)
+        val theta = calculateThetaInDegrees(positionXy.x, positionXy.y)
         val targetRho = calculateRho(target.x, target.y, settings)
-        val targetTheta=calculateThetaInDegrees(target.x, target.y, settings)
-        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
+        val targetTheta = calculateThetaInDegrees(target.x, target.y)
+        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$positionXy, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
     }
 }
