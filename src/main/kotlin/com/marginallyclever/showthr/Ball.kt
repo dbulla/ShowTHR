@@ -1,38 +1,43 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.Utilities.Companion.calculateRho
-import com.marginallyclever.showthr.Utilities.Companion.calculateTheta
-import com.marginallyclever.showthr.Utilities.Companion.calculateX
-import com.marginallyclever.showthr.Utilities.Companion.calculateY
+import com.nurflugel.showthr.RhoTheta
+import com.nurflugel.showthr.Utilities.Companion.calculateRho
+import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
+import com.nurflugel.showthr.Utilities.Companion.calculateX
+import com.nurflugel.showthr.Utilities.Companion.calculateY
+import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.Utilities.Companion.calculateTheta
 import javax.vecmath.Vector2d
 
-// Ball class for handling ball movement and position
-internal class Ball(val name: String, val radius: Int, val settings: Settings) {
-    internal var position: Vector2d = Vector2d()
+/**
+ * Class for handling ball movement and position
+ */
+class Ball(val name: String, val radius: Int, val settings: Settings) {
+    internal var positionXy: Vector2d = Vector2d()
+    var startPosition: Vector2d = Vector2d()
+    internal var positionRhoTheta: RhoTheta = RhoTheta(0.0, 0.0)
+    internal var targetRhoTheta: RhoTheta = positionRhoTheta
     private var target: Vector2d = Vector2d()
     private val speed = 1.0 // Arbitrary speed value
     var atTarget: Boolean = false
 
-    fun setPositionThetaRho(theta: Double, rho: Double) {
-        position.x = calculateX(theta, rho, settings)
-        position.y = calculateY(theta, rho, settings)
-        println("$name rho: $rho")
+    fun setPositionRhoTheta(rhoTheta: RhoTheta) {
+        positionRhoTheta = rhoTheta
+        positionXy.x = calculateX(rhoTheta, settings)
+        positionXy.y = calculateY(rhoTheta, settings)
     }
 
-    fun setTargetXY(x: Double, y: Double) {
-        target[x] = y
+    fun setTargetRhoTheta(rhoTheta: RhoTheta) {
+        targetRhoTheta = rhoTheta
+        val x = calculateX(rhoTheta, settings)
+        val y = calculateY(rhoTheta, settings)
+        target.set(x, y)
         val diff = Vector2d(target)
-        diff.sub(position)
-        atTarget = diff.lengthSquared() < 0.1
-    }
-
-    fun setTargetThetaRho(theta: Double, rho: Double) {
-        val x = calculateX(theta, rho, settings)
-        val y = calculateY(theta, rho, settings)
-        target[x] = y
-        val diff = Vector2d(target)
-        diff.sub(position)
-        atTarget = diff.lengthSquared() < 0.1
+        diff.sub(positionXy)
+        val lengthSquared = diff.lengthSquared()
+        atTarget = lengthSquared < 0.1
+        // we need this for the relaxation step
+        startPosition = positionXy
     }
 
     /**
@@ -44,35 +49,41 @@ internal class Ball(val name: String, val radius: Int, val settings: Settings) {
      * This is fixed in SandSimulation.expandSequence(), where we tweak the initial theta and rho to produce an expanded list where the current
      * functionality will work even though it's wrong.
      */
-    fun updatePosition(deltaTime: Double) {
+    fun updatePosition(): RhoTheta {
+        val deltaTime = settings.deltaTime
         val direction = Vector2d(target)
-        direction.sub(position)
+        direction.sub(positionXy)
         val len = direction.lengthSquared()
         if (len < speed * deltaTime) {
-            position.set(target)
+            positionXy.set(target)
             atTarget = true
         }
         else {
             direction.normalize()
             direction.scale(speed * deltaTime)
-            position.add(direction)
+            positionXy.add(direction)
             atTarget = false
         }
+        // make sure that the changes in x, y are echoed in rho and theta
+        updateRhoThetaPosition()
+        return positionRhoTheta
     }
 
-    fun getRho(): Double {
-        return calculateRho(position.x.toInt(), position.y.toInt(), settings)
+    fun updateRhoThetaPosition() {
+        val rho = calculateRho(positionXy.x, positionXy.y, settings)
+        val theta = calculateTheta(positionXy.x, positionXy.y)
+        positionRhoTheta = RhoTheta(rho, theta)
     }
 
-    fun getTheta(): Double {
-        return calculateTheta(position.x.toInt(), position.y.toInt(), settings)
+    fun getRhoTheta(): RhoTheta {
+        return positionRhoTheta
     }
 
     override fun toString(): String {
-        val rho = calculateRho(position.x.toInt(), position.y.toInt(), settings)
-        val theta = calculateTheta(position.x.toInt(), position.y.toInt(), settings)
-        val targetRho = calculateRho(target.x.toInt(), target.y.toInt(), settings)
-        val targetTheta = calculateTheta(target.x.toInt(), target.y.toInt(), settings)
-        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$position, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
+        val rho = calculateRho(positionXy.x, positionXy.y, settings)
+        val theta = calculateThetaInDegrees(positionXy.x, positionXy.y)
+        val targetRho = calculateRho(target.x, target.y, settings)
+        val targetTheta = calculateThetaInDegrees(target.x, target.y)
+        return "Ball(name='$name',  Position:(rho=$rho, theta=$theta), positionXY=$positionXy, target:(rho=$targetRho, theta=$targetTheta), $target, speed=$speed, atTarget=$atTarget,)"
     }
 }

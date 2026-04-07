@@ -1,5 +1,7 @@
 package com.marginallyclever.showthr
 
+import com.nurflugel.showthr.RhoTheta
+import com.nurflugel.showthr.Settings
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -50,22 +52,22 @@ object ShowTHR {
             //            }
             settings.batchTracks.forEach {
                 try {
-//                    val oldBallsSetting = settings.useTwoBalls
-//                    val oldReversedSetting = settings.isReversed
-//                    if (it == "clean.thr") {
-//                        settings.useTwoBalls = true
-//                        settings.isReversed = true
-//                    }
+                    //                    val oldBallsSetting = settings.useTwoBalls
+                    //                    val oldReversedSetting = settings.isReversed
+                    //                    if (it == "clean.thr") {
+                    //                        settings.useTwoBalls = true
+                    //                        settings.isReversed = true
+                    //                    }
                     processThrFile(it, sandSimulation)
-//                    settings.useTwoBalls = oldBallsSetting
-//                    settings.isReversed = oldReversedSetting
+                    //                    settings.useTwoBalls = oldBallsSetting
+                    //                    settings.isReversed = oldReversedSetting
                 } catch (e: IOException) {
                     println("Error reading file " + settings.inputFilename + ": " + e.message)
                 }
 
                 try { // save the image to disk
                     val file = File(settings.outputFilename!!)
-                    ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
+                    ImageIO.write(sandSimulation.bufferedImage, settings.fileExtension, file)
                     println("Image saved to " + file.absolutePath)
                 } catch (e: IOException) {
                     println("Error saving file " + settings.outputFilename + ": " + e.message)
@@ -93,65 +95,33 @@ object ShowTHR {
     @OptIn(ExperimentalTime::class)
     @Throws(IOException::class)
     fun processThrFile(filename: String, sandSimulation: SandSimulation) {
-        val file = File(filename)
-        val shortFilename = file.name
         val stringBuilder = StringBuilder()
 
         var previousPercentage = 0.0
         val startTime = Clock.System.now()
 
-        val expandedSequence = extractRhoThetaPairs(file)
+        val expandedSequence = extractRhoThetaPairs(filename)
         if (expandedSequence.isEmpty()) return
         val numLines = expandedSequence.size
 
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         val firstTheta = expandedSequence.first().first
         val firstRho = expandedSequence.first().second
-        sandSimulation.setTarget(firstTheta, firstRho)
+        sandSimulation.setTarget(RhoTheta(firstRho, firstTheta))
 
         expandedSequence.forEachIndexed { index, it ->
-            previousPercentage = moveToNextRhoTheta(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
+            val rhoTheta = RhoTheta(it.second, it.first)
+            sandSimulation.moveToNextRhoTheta(index, rhoTheta)
+            previousPercentage = outputStatus(stringBuilder, filename, index, numLines, previousPercentage, startTime)
         }
     }
 
-    @OptIn(ExperimentalTime::class)
-    private fun moveToNextRhoTheta(
-        it: Pair<Double, Double>,
-        sandSimulation: SandSimulation,
-        index: Int,
-        previousPercentage: Double,
-        stringBuilder: StringBuilder,
-        shortFilename: String,
-        numLines: Int,
-        startTime: kotlin.time.Instant,
-    ): Double {
-
-        val theta = it.first
-        val rho = it.second
-
-        if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setInitialBallPosition(theta, rho)
-        }
-
-        sandSimulation.setTarget(theta, rho)
-        var count = 0
-        while (!sandSimulation.ballAtTarget()) {
-            sandSimulation.update(settings.deltaTime)
-            count++
-        }
-        if (index % settings.imageSkipCount == 0) {
-            sandSimulation.renderSandImage()
-        }
-        val newPreviousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
-        return newPreviousPercentage
-    }
-
-    private fun extractRhoThetaPairs(file: File): MutableList<Pair<Double, Double>> {
+    private fun extractRhoThetaPairs(filename: String): MutableList<Pair<Double, Double>> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
             settings.isGenerateCleanBackdrop -> createCleaningTrack()
             else                             -> {
-                BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
+                BufferedReader(InputStreamReader(FileInputStream(File(filename)))).use { reader ->
                     val lineSequence = reader.lineSequence().toMutableList()
                     if (lineSequence.isEmpty()) exitProcess(0)
                     lineSequence
@@ -171,7 +141,6 @@ object ShowTHR {
      */
     private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
         val sequence: MutableList<Pair<Double, Double>> =
-
             lines.map { it.trim() }
                 .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//") || it.startsWith("theta") }
                 .map {
@@ -192,25 +161,13 @@ object ShowTHR {
 
     // if desired, add a "clean" before the main track
     fun createCleaningTrack(): MutableList<String> {
-        //        if (true) {
-        //            val targetTheta = sequence[0].first
-        //            val targetRho = sequence[0].second
-        //            val initialRho = when (targetRho) {
-        //                0.0  -> 1.0
-        //                else -> 0.0
-        //            }
-        //            val initialTheta = targetTheta - 200.0 * PI
-        //            val newSequence = mutableListOf<Pair<Double, Double>>()
-        //            newSequence.add(Pair(initialTheta, initialRho))
-        //            newSequence.addAll(sequence)
-        //            return newSequence
-        //        }
-        //        else
-        //            return sequence
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
-        cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
-        cleaningTrack.add("${(settings.NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
+        val turnsInRadians = settings.NUMBER_OF_TURNS_TO_CLEAN * PI
+        cleaningTrack.add("$turnsInRadians 1.0")
+        // do another 2 PI turns to get a nice clean edge
+        cleaningTrack.add("${turnsInRadians + 4 * PI} 1.0")
+        cleaningTrack.add("${turnsInRadians + 8 * PI} 1.0")
 
         return cleaningTrack
     }
@@ -227,8 +184,6 @@ object ShowTHR {
                 val (theta2, rho2) = sequence[i + 1]
                 val deltaRho = abs(rho1 - rho2)
                 val deltaTheta = abs(theta1 - theta2)
-                //                val areBothRhosNotZero = rho1 != 0.0 || rho2 != 0.0 // this doesn't really save that much time unless we only have 1 ball
-                //                if (settings.useTwoBalls || areBothRhosNotZero) { // if rhos are zero, skip expanding - unless we have two balls
                 if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
                     val thetaDiff = theta2 - theta1
                     val rhoDiff = rho2 - rho1
@@ -247,7 +202,6 @@ object ShowTHR {
                         }
                     }
                 }
-                //                }
                 else newSequence.add(Pair(theta1, rho1))
             }
             if (sequence.isNotEmpty()) newSequence.add(sequence.last())
@@ -289,7 +243,6 @@ object ShowTHR {
                     val timeRemainingMs = (numLines * durationMs / index) - durationMs
                     Duration.ofMillis(timeRemainingMs).toString()
                 }
-
                 else      -> "?"
             }
             stringBuilder.append("$shortFilename    $percent    Duration: $duration    timeRemaining: $timeRemaining")
@@ -308,24 +261,40 @@ object ShowTHR {
         print(
             """
             
-Usage: ShowTHR inputfile.thr [options]
-Optional:
-    -b backgroundImageName      Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
-    -c                          No args, if present will generate a "clean.png" image to be used as a background image.
-    -d initialDepth             Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
-    -e shouldExpandSequences    If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
-    -h height                   Set the image height.  Default is screen height.
-    -w width                    Set the image width.  Default is screen width.
-    -skip imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
-    -o outputFilename           If present, the output file will be written to this file
-    -q                          No args, if present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
-    -r                          No args, if present, the .thr file will be read in reversed order.
-    -s ballSize                 Sets the ball size.  Default is 5.
+Usage: ./gradlew run --args="-i inputFile.thr [options]"   
+  
+  or, build the jar with 'gradlew shadowJar' and run with 
+  
+  'java -jar build/libs/showthr-all.jar -i inputFile.thr [options]'
+
+
+Optional flags with arguments:
+    
+    -o              outputFilename        If present, the output file will be written to this file
+    -background     backgroundImageName   Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
+    -depth          initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
+    -deltaTime      deltaTime             Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2.
+    -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
+    -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
+    -ballRadius     ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
+    -tableDiameter  table size            Sets the diameter of the sand table.  Default is ${settings.baseTableDiameter}.
+    -batchTracks    batch track list      List of file names to process - each will draw on top of the previous one.
+
+Optional flags without arguments:
+    -clean            If present, will generate a "clean_SIZE.png" image to be used as a background image.
+    -hideBall1        If present, the first ball will not be drawn.
+    -quit             If present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
+    -reversed         If present, the .thr file will be read in reversed order.
+    -tantalus         Tantalus mode - draw with two balls
+    -grey             Use a grey background instead of a "clean" track background. 
+    -headless"        Generate the image w/o any GUI
+    -hideBall1"       Use two balls, but don't show the first ball.
+
+
     
 Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()}
     
                             """.trimIndent()
         )
     }
-
 }

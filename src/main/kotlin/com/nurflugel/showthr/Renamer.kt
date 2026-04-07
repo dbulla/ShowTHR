@@ -1,6 +1,6 @@
 package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.io.File
 
 /** This class will rename all the files in a directory to have a number prefix.
@@ -41,8 +41,8 @@ object Renamer {
 
         sourceDirectory.listFiles()!!
             .filter { it.name.startsWith("clock") }
-            .sortedBy { it.name }
-            .mapIndexed { index, s -> index to s } // make a list of pairs, consisting of the index number and the file
+            .sortedBy { it.name.substringAfter("_1000_").substringBefore(".png").toDouble() }
+            .mapIndexed { index, s -> index to s } // make a list of pairs consisting of the index number and the file
             .forEach {
                 val paddedNumber = it.first.toString().padStart(5, '0')
                 // figure out the new filename
@@ -52,7 +52,8 @@ object Renamer {
                 when { // skip if the target file already exists
                     renamedImageFile.exists() -> println("Skipping $newImageName - file already exists")
                     else                      -> {
-                        println("Renaming ${it.second} to $newImageName")
+                        val paddedName = it.second.name.padEnd(40, ' ')
+                        println("Renaming    $paddedName to       $newImageName")
                         it.second.copyTo(renamedImageFile)
                     }
                 }
