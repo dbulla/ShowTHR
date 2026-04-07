@@ -6,6 +6,7 @@ import javax.imageio.ImageIO
 
 @Suppress("PropertyName")
 class Settings {
+
     //    companion object {
     val MAX_SLOPE = 1.0 // Threshold for sand redistribution
     val REDISTRIBUTION_RATE = 0.5 // Amount of sand transferred per step
@@ -34,8 +35,10 @@ class Settings {
     var outputFilename: String? = null
     var baseTableDiameter = Toolkit.getDefaultToolkit().screenSize.height - 100
     var tableDiameterWithPadding = 0
-//    var centerX: Int = 0
-//    var centerY: Int = 0
+    var hideBallOne: Boolean = false
+
+    //    var centerX: Int = 0
+    //    var centerY: Int = 0
     lateinit var ext: String
     var useGreyBackground = false
     val redConversion = 255 / 255.0
@@ -49,8 +52,8 @@ class Settings {
     val batchTracks: MutableList<String> = mutableListOf()
 
     fun calculateCenter() {
-//        centerX = tableDiameterWithPadding / 2
-//        centerY = centerX
+        //        centerX = tableDiameterWithPadding / 2
+        //        centerY = centerX
         tableRadius = baseTableDiameter / 2 // todo auto remove shoulder width so the image can be exactly the size specified
         //        maxRadius = tableRadius + SHOULDER_WIDTH
         // add the extra padding to the base table diameter
@@ -80,6 +83,7 @@ class Settings {
                     "-d"             -> initialSandDepth = setValueFromArg(++index, args).toDouble()
                     "-e"             -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
                     "-headless"      -> isHeadless = true
+                    "-hideBall1"     -> hideBallOne = true
                     "-i"             -> inputFilename = args[++index]
                     "-g"             -> useGreyBackground = true
                     "-skip"          -> imageSkipCount = setValueFromArg(++index, args).toInt()
@@ -150,6 +154,7 @@ class Settings {
         println("o - outputFilename = $outputFilename")
         println("e - expandSequences = $shouldExpandSequences")
         println("q - shouldQuitWhenDone = $shouldQuitWhenDone")
+        println("hideBallOne = $hideBallOne")
         println("ext = $ext")
 
     }

@@ -40,8 +40,8 @@ class SandSimulationTest {
 
     @Test
     fun testRho() {
-        settings = Settings().apply { tableDiameterWithPadding = 1000 }
-        settings.calculateCenter()
+        settings = Settings().apply { tableDiameterWithPadding = 1000; calculateCenter() }
+
         val ball1 = Ball("Ball1", 10, settings)
         val ball2 = Ball("Ball2", 10, settings)
         validateRho2(ball1, RhoTheta(0.0, 0.0), ball2)
@@ -60,19 +60,20 @@ class SandSimulationTest {
         ball2.setTargetRhoTheta(ball2RhoTheta)
         // This should always equal 1.0
         val armLength = getArmLength(ball1, ball2)
-        assertEquals(1.0, armLength, 0.01)
+        assertEquals(1.0, armLength, 0.0001)
     }
 
     @Test
     @Throws(IOException::class)
     fun testSandSimulationSpiral() {
+        settings = Settings().apply { baseTableDiameter = 100; ballRadius = 2; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
         sandSimulation.setTarget(RhoTheta(0.0, 100.0))
         var radius = (settings.tableDiameterWithPadding) / 2.0 - settings.SHOULDER_WIDTH
         var angleInDegrees = 0.0
         for (iteration in 0..9999) {
-            sandSimulation.update(0.5)
-            if (sandSimulation.ballAtTarget()) {
+            sandSimulation.update()
+            if (sandSimulation.ballAtTarget(sandSimulation.ball)) {
                 val angleInRadians = Math.toRadians(angleInDegrees)
                 sandSimulation.setTarget(
                     RhoTheta(
@@ -92,7 +93,7 @@ class SandSimulationTest {
         // save the image to disk
         val file = File("sand_simulation.png")
         ImageIO.write(image, "png", file)
-        println("Image saved to " + file.absolutePath) // todo this is BROKEN
+        println("Image saved to " + file.absolutePath)
     }
 
     /**
@@ -100,13 +101,12 @@ class SandSimulationTest {
      * @throws IOException if the file cannot be read
      */
     @Test
-    @Order(Integer.MAX_VALUE) // run this last
+    @Order(Integer.MAX_VALUE) // run this last so it saves the image
     @Throws(IOException::class)
     fun testSandSimulationFromFile() {
-        settings = Settings().apply { tableDiameterWithPadding = 100; ballRadius = 2; calculateCenter() }
+        settings = Settings().apply { baseTableDiameter = 100; ballRadius = 2; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
-        val showThr = ShowTHR
-        showThr.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation)
+        ShowTHR.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation)
 
         val image: BufferedImage = sandSimulation.renderSandImage()
         // save the image to disk

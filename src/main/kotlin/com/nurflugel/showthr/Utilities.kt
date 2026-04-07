@@ -24,7 +24,6 @@ class Utilities {
             return newXoffset
         }
 
-
         fun setValueFromArg(index: Int, args: Array<String>): String {
             if (index < args.size) {
                 return args[index].trim { it <= ' ' }
@@ -35,7 +34,11 @@ class Utilities {
             }
         }
 
-        // returns a normalized rho (0..1)
+        /**
+         * rho is now zeroed in the center of the table.
+         *
+         * @param settings - passed in here so we can do unit tests.
+         */
         fun calculateRho(x: Double, y: Double, settings: Settings): Double {
             val rho = sqrt((x * x + y * y))
             val normalizedRho = rho / settings.tableRadius

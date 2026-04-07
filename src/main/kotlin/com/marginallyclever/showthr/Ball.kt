@@ -15,6 +15,7 @@ import javax.vecmath.Vector2d
  */
 class Ball(val name: String, val radius: Int, val settings: Settings) {
     internal var positionXy: Vector2d = Vector2d()
+    var startPosition: Vector2d = Vector2d()
     internal var positionRhoTheta: RhoTheta = RhoTheta(0.0, 0.0)
     internal var targetRhoTheta: RhoTheta = positionRhoTheta
     private var target: Vector2d = Vector2d()
@@ -40,10 +41,12 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
         val x = calculateX(rhoTheta, settings)
         val y = calculateY(rhoTheta, settings)
         target.set(x, y)
-//        target[x] = y  //todo this seems wierd...
         val diff = Vector2d(target)
         diff.sub(positionXy)
-        atTarget = diff.lengthSquared() < 0.1
+        val lengthSquared = diff.lengthSquared()
+        atTarget = lengthSquared < 0.1
+        // we need this for the relaxation step
+        startPosition = positionXy
     }
 
     /**
@@ -55,7 +58,8 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
      * This is fixed in SandSimulation.expandSequence(), where we tweak the initial theta and rho to produce an expanded list where the current
      * functionality will work even though it's wrong.
      */
-    fun updatePosition(deltaTime: Double) {
+    fun updatePosition(): RhoTheta {
+        val deltaTime = settings.deltaTime
         val direction = Vector2d(target)
         direction.sub(positionXy)
         val len = direction.lengthSquared()
@@ -69,13 +73,19 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
             positionXy.add(direction)
             atTarget = false
         }
-        // make sure we have a valid rho and theta
-//        positionRhoTheta = getRhoTheta()
-        positionRhoTheta = RhoTheta(calculateRho(positionXy.x, positionXy.y, settings), calculateTheta(positionXy.x, positionXy.y))
+        // make sure that the changes in x, y are echoed in rho and theta
+        updateRhoThetaPosition()
+        return positionRhoTheta
+    }
+
+    fun updateRhoThetaPosition() {
+        val rho = calculateRho(positionXy.x, positionXy.y, settings)
+        val theta = calculateTheta(positionXy.x, positionXy.y)
+        positionRhoTheta = RhoTheta(rho, theta)
     }
 
     fun getRhoTheta(): RhoTheta {
-//        return RhoTheta(calculateRho(positionXy.x, positionXy.y, settings), calculateTheta(positionXy.x, positionXy.y))
+        //        return RhoTheta(calculateRho(positionXy.x, positionXy.y, settings), calculateTheta(positionXy.x, positionXy.y))
         return positionRhoTheta
     }
 

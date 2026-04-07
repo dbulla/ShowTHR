@@ -30,35 +30,35 @@ internal class BallTest {
         val ball = Ball("TestBall", 10, settings)
         ball.setPositionRhoTheta(RhoTheta(1.0, 0.0))
         val actual = ball.getRhoTheta().rho
-        assertEquals(0.8, actual, 0.0001)
+        assertEquals(1.0, actual, 0.0001)
     }
 
     @Test
     fun `test getRho with position on positive Y-axis`() {
         val ball = Ball("TestBall", 10, settings)
         ball.setPositionRhoTheta(RhoTheta(1.0, PI / 2))
-        assertEquals(0.8, ball.getRhoTheta().rho, 0.0001)
+        assertEquals(1.0, ball.getRhoTheta().rho, 0.0001)
     }
 
     @Test
     fun `test getRho with position on diagonal`() {
         val ball = Ball("TestBall", 10, settings)
         ball.setPositionRhoTheta(RhoTheta(1.0, PI / 4))
-        assertEquals(0.8, ball.getRhoTheta().rho, 0.0001)
+        assertEquals(1.0, ball.getRhoTheta().rho, 0.0001)
     }
 
     @Test
     fun `test getRho with position on negative X-axis`() {
         val ball = Ball("TestBall", 10, settings)
         ball.setPositionRhoTheta(RhoTheta(1.0, PI))
-        assertEquals(0.8, ball.getRhoTheta().rho, 0.0001)
+        assertEquals(1.0, ball.getRhoTheta().rho, 0.0001)
     }
 
     @Test
     fun `test getRho with position on negative Y-axis`() {
         val ball = Ball("TestBall", 10, settings)
         ball.setPositionRhoTheta(RhoTheta(1.0, PI * 3 / 2))
-        assertEquals(0.8, ball.getRhoTheta().rho, 0.0001)
+        assertEquals(1.0, ball.getRhoTheta().rho, 0.0001)
     }
 
     @Test
@@ -93,14 +93,14 @@ internal class BallTest {
     fun `test getTheta with position on negative Y-axis`() {
         val ball = Ball("TestBall", 10, settings)
         ball.setPositionRhoTheta(RhoTheta(1.0, PI * 3 / 2))
-        assertEquals(-PI / 2, ball.getRhoTheta().theta, 0.0001) // -Pi/2 radians (-90 degrees)
+        assertEquals(PI * 3 / 2, ball.getRhoTheta().theta, 0.0001) // -Pi/2 radians (-90 degrees)
     }
 
     @Test
     fun `test getTheta with position in first quadrant`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.positionXy = Vector2d(100 + 3.0, 100 + 4.0) // Angle calculated: arctan(4/3)
-
+        ball.positionXy = Vector2d(3.0, 4.0) // Angle calculated: arctan(4/3)
+        ball.updateRhoThetaPosition()
         val theta = ball.getRhoTheta().theta
 
         assertEquals(atan2(4.0, 3.0), theta, 0.0001)
@@ -109,8 +109,8 @@ internal class BallTest {
     @Test
     fun `test getTheta with position in second quadrant`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.positionXy = Vector2d(100 - 3.0, 100 + 4.0) // Angle calculated: arctan(4/-3)
-
+        ball.positionXy = Vector2d( - 3.0,  4.0) // Angle calculated: arctan(4/-3)
+        ball.updateRhoThetaPosition()
         val theta = ball.getRhoTheta().theta
 
         assertEquals(atan2(4.0, -3.0), theta, 0.0001)
@@ -121,8 +121,8 @@ internal class BallTest {
         val ball = Ball("TestBall", 10, settings)
         val x = -30.0
         val y = -40.0
-        ball.positionXy = Vector2d(100 + x, 100 + y) // Angle calculated: arctan(-4/-3)
-
+        ball.positionXy = Vector2d( x, y) // Angle calculated: arctan(-4/-3)
+        ball.updateRhoThetaPosition()
         val theta = ball.getRhoTheta().theta
 
         assertEquals(atan2(y, x), theta, 0.0001)
@@ -131,8 +131,8 @@ internal class BallTest {
     @Test
     fun `test getTheta with position in fourth quadrant`() {
         val ball = Ball("TestBall", 10, settings)
-        ball.positionXy = Vector2d(100 + 3.0, 100 - 4.0) // Angle calculated: arctan(-4/3)
-
+        ball.positionXy = Vector2d( 3.0,  -4.0) // Angle calculated: arctan(-4/3)
+        ball.updateRhoThetaPosition()
         val actual = ball.getRhoTheta().theta
         val expected = atan2(-4.0, 3.0)
         assertEquals(expected, actual, 0.0001)

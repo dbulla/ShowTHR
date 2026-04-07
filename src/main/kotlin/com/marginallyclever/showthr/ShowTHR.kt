@@ -1,5 +1,6 @@
 package com.marginallyclever.showthr
 
+import com.marginallyclever.showthr.ShowTHR.outputStatus
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Settings
 import java.io.BufferedReader
@@ -52,15 +53,15 @@ object ShowTHR {
             //            }
             settings.batchTracks.forEach {
                 try {
-//                    val oldBallsSetting = settings.useTwoBalls
-//                    val oldReversedSetting = settings.isReversed
-//                    if (it == "clean.thr") {
-//                        settings.useTwoBalls = true
-//                        settings.isReversed = true
-//                    }
+                    //                    val oldBallsSetting = settings.useTwoBalls
+                    //                    val oldReversedSetting = settings.isReversed
+                    //                    if (it == "clean.thr") {
+                    //                        settings.useTwoBalls = true
+                    //                        settings.isReversed = true
+                    //                    }
                     processThrFile(it, sandSimulation)
-//                    settings.useTwoBalls = oldBallsSetting
-//                    settings.isReversed = oldReversedSetting
+                    //                    settings.useTwoBalls = oldBallsSetting
+                    //                    settings.isReversed = oldReversedSetting
                 } catch (e: IOException) {
                     println("Error reading file " + settings.inputFilename + ": " + e.message)
                 }
@@ -112,39 +113,10 @@ object ShowTHR {
         sandSimulation.setTarget(RhoTheta(firstRho, firstTheta))
 
         expandedSequence.forEachIndexed { index, it ->
-            previousPercentage = moveToNextRhoTheta(it, sandSimulation, index, previousPercentage, stringBuilder, shortFilename, numLines, startTime)
+            val rhoTheta = RhoTheta(it.second, it.first)
+            sandSimulation.moveToNextRhoTheta(index, rhoTheta)
+            previousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
         }
-    }
-
-    @OptIn(ExperimentalTime::class)
-    private fun moveToNextRhoTheta(
-        it: Pair<Double, Double>,
-        sandSimulation: SandSimulation,
-        index: Int,
-        previousPercentage: Double,
-        stringBuilder: StringBuilder,
-        shortFilename: String,
-        numLines: Int,
-        startTime: kotlin.time.Instant,
-    ): Double {
-
-        val rhoTheta= RhoTheta(it.second, it.first)
-
-        if (index == 0) { // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
-            sandSimulation.setInitialBallPosition(rhoTheta)
-        }
-
-        sandSimulation.setTarget(rhoTheta)
-        var count = 0
-        while (!sandSimulation.ballAtTarget()) {
-            sandSimulation.update(settings.deltaTime)
-            count++
-        }
-        if (index % settings.imageSkipCount == 0) {
-            sandSimulation.renderSandImage()
-        }
-        val newPreviousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
-        return newPreviousPercentage
     }
 
     private fun extractRhoThetaPairs(file: File): MutableList<Pair<Double, Double>> {
@@ -172,7 +144,6 @@ object ShowTHR {
      */
     private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
         val sequence: MutableList<Pair<Double, Double>> =
-
             lines.map { it.trim() }
                 .filterNot { it.isEmpty() || it.startsWith("#") || it.startsWith("//") || it.startsWith("theta") }
                 .map {
@@ -316,6 +287,7 @@ Optional:
     -d    initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
     -e    ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
     -h    height                Set the image height.  Default is screen height.
+    -hideBall1                  No args, if present, the first ball will not be drawn.
     -w    width                 Set the image width.  Default is screen width.
     -skip imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
     -o    outputFilename        If present, the output file will be written to this file
