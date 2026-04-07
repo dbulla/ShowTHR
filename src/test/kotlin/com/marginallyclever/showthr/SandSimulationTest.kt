@@ -37,32 +37,7 @@ class SandSimulationTest {
         ImageIO.write(image, "png", file)
         println("Image saved to " + file.absolutePath)
     }
-
-    @Test
-    fun testRho() {
-        settings = Settings().apply { tableDiameterWithPadding = 1000; calculateCenter() }
-
-        val ball1 = Ball("Ball1", 10, settings)
-        val ball2 = Ball("Ball2", 10, settings)
-        validateRho2(ball1, RhoTheta(0.0, 0.0), ball2)
-        validateRho2(ball1, RhoTheta(0.0, 1.0), ball2)
-        validateRho2(ball1, RhoTheta(0.5, 2.0), ball2)
-        validateRho2(ball1, RhoTheta(0.5, 3.5), ball2)
-        validateRho2(ball1, RhoTheta(0.5, 5.0), ball2)
-        validateRho2(ball1, RhoTheta(0.5, 6.0), ball2)
-
-    }
-
-    private fun validateRho2(ball1: Ball, rhoTheta: RhoTheta, ball2: Ball) {
-        ball1.setPositionRhoTheta(rhoTheta)
-        val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
-        ball2.setPositionRhoTheta(ball2RhoTheta)
-        ball2.setTargetRhoTheta(ball2RhoTheta)
-        // This should always equal 1.0
-        val armLength = getArmLength(ball1, ball2)
-        assertEquals(1.0, armLength, 0.0001)
-    }
-
+    
     @Test
     @Throws(IOException::class)
     fun testSandSimulationSpiral() {

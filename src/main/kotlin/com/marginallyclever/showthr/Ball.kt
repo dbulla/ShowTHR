@@ -9,9 +9,8 @@ import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateTheta
 import javax.vecmath.Vector2d
 
-/** Ball class for handling ball movement and position
- *
- *
+/**
+ * Class for handling ball movement and position
  */
 class Ball(val name: String, val radius: Int, val settings: Settings) {
     internal var positionXy: Vector2d = Vector2d()
@@ -26,14 +25,6 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
         positionRhoTheta = rhoTheta
         positionXy.x = calculateX(rhoTheta, settings)
         positionXy.y = calculateY(rhoTheta, settings)
-        //        println("$name rho: $rho")
-    }
-
-    fun setTargetXY(x: Double, y: Double) {
-        target[x] = y
-        val diff = Vector2d(target)
-        diff.sub(positionXy)
-        atTarget = diff.lengthSquared() < 0.1
     }
 
     fun setTargetRhoTheta(rhoTheta: RhoTheta) {
@@ -85,14 +76,8 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
     }
 
     fun getRhoTheta(): RhoTheta {
-        //        return RhoTheta(calculateRho(positionXy.x, positionXy.y, settings), calculateTheta(positionXy.x, positionXy.y))
         return positionRhoTheta
     }
-
-    /** Returns the angle in radians */
-    //    fun getTheta(): Double {
-    //        return calculateTheta(positionXy.x, positionXy.y, settings)
-    //    }
 
     override fun toString(): String {
         val rho = calculateRho(positionXy.x, positionXy.y, settings)

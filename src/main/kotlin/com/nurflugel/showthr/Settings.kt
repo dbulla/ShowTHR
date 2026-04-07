@@ -14,7 +14,7 @@ class Settings {
     val PROGRESS_THRESHOLD = 4.0
     var shouldExpandSequences = true
     val NUMBER_OF_TURNS_TO_CLEAN = 200
-    var useTwoBalls = false
+    var isTantalus = false
 
     /**
      * At the perimeter of the table, the ball can push the sand past the 1.0 rho level - we want to see
@@ -36,10 +36,7 @@ class Settings {
     var baseTableDiameter = Toolkit.getDefaultToolkit().screenSize.height - 100
     var tableDiameterWithPadding = 0
     var hideBallOne: Boolean = false
-
-    //    var centerX: Int = 0
-    //    var centerY: Int = 0
-    lateinit var ext: String
+    lateinit var fileExtension: String
     var useGreyBackground = false
     val redConversion = 255 / 255.0
     val greenConversion = 244 / 255.0
@@ -47,8 +44,7 @@ class Settings {
     var isHeadless = false
     var tableRadius = baseTableDiameter / 2
 
-    //    var maxRadius = tableRadius + SHOULDER_WIDTH
-    val deltaTime = 0.2
+    var deltaTime = 2 / 10.0  // good starting point
     val batchTracks: MutableList<String> = mutableListOf()
 
     fun calculateCenter() {
@@ -76,23 +72,27 @@ class Settings {
             var index = 0
             while (index < args.size) {
                 when (args[index]) {
-                    // todo review these and standardize
-                    "-b"             -> backgroundImageName = setValueFromArg(++index, args)
-                    "-useTwoBalls"   -> useTwoBalls = true
-                    "-c"             -> isGenerateCleanBackdrop = true
-                    "-d"             -> initialSandDepth = setValueFromArg(++index, args).toDouble()
-                    "-e"             -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
-                    "-headless"      -> isHeadless = true
-                    "-hideBall1"     -> hideBallOne = true
                     "-i"             -> inputFilename = args[++index]
-                    "-g"             -> useGreyBackground = true
-                    "-skip"          -> imageSkipCount = setValueFromArg(++index, args).toInt()
                     "-o"             -> outputFilename = setValueFromArg(++index, args)
-                    "-q"             -> shouldQuitWhenDone = true
+                    "-grey"          -> useGreyBackground = true
+                    "-background"    -> backgroundImageName = setValueFromArg(++index, args)
+                    "-tantalus"      -> isTantalus = true
+                    "-clean"         -> isGenerateCleanBackdrop = true
+                    "-depth"         -> initialSandDepth = setValueFromArg(++index, args).toDouble()
+                    "-expand"        -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                    "-headless"      -> isHeadless = true
+                    "-hideBall1"     -> {
+                        hideBallOne = true
+                        isTantalus = true
+                    }
+
+                    "-skip"          -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                    "-quit"          -> shouldQuitWhenDone = true
                     "-reversed"      -> isReversed = true
-                    "-s"             -> ballRadius = setValueFromArg(++index, args).toInt()
+                    "-ballRadius"    -> ballRadius = setValueFromArg(++index, args).toInt()
                     "-tableDiameter" -> baseTableDiameter = setValueFromArg(++index, args).toInt()
                     "-batchTracks"   -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
+                    "-deltaTime"     -> deltaTime = setValueFromArg(++index, args).toDouble() / 10.0
                     else             -> {
                         println("Unknown option " + args[index])
                         return false
@@ -122,20 +122,20 @@ class Settings {
             if (outputFilename == null) outputFilename = inputFilename?.replace(".thr", ".png")
             //            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
             if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
-            if (useTwoBalls) outputFilename = outputFilename!!.replace(".png", "_2balls.png")
+            if (isTantalus) outputFilename = outputFilename!!.replace(".png", "_tantalus.png")
             if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableDiameterWithPadding}x${tableDiameterWithPadding}.png"
         }
 
         // default output name to input name and png
-        ext = outputFilename!!.substringAfterLast('.')
+        fileExtension = outputFilename!!.substringAfterLast('.')
         return true
     }
 
 
     // verify the file extension is supported by ImageIO
     fun isOutputFileIsSupported(): Boolean {
-        if (!ImageIO.getImageWritersByFormatName(ext).hasNext()) {
-            println("Unsupported file format $ext")
+        if (!ImageIO.getImageWritersByFormatName(fileExtension).hasNext()) {
+            println("Unsupported file format $fileExtension")
             return false
         }
         return true
@@ -144,18 +144,20 @@ class Settings {
     // print the settings
     fun printSettings() {
         println("inputFilename = $inputFilename")
-        println("b - backgroundImageName = $backgroundImageName")
-        println("useTwoBalls  = $useTwoBalls")
-        println("s - ballSize = $ballRadius")
+        println("outputFilename = $outputFilename")
+        println("backgroundImageName = $backgroundImageName")
+        println("tantalus  = $isTantalus")
+        println("deltaTime  = $deltaTime")
+        println("ballRadius = $ballRadius")
         println("tableDiameter = $baseTableDiameter")
-        println("skip imageSkipCount = $imageSkipCount")
-        println("d - initialDepth = $initialSandDepth")
-        println("r - isReversed = $isReversed")
-        println("o - outputFilename = $outputFilename")
-        println("e - expandSequences = $shouldExpandSequences")
-        println("q - shouldQuitWhenDone = $shouldQuitWhenDone")
+        println("skip = $imageSkipCount")
+        println("depth = $initialSandDepth")
+        println("reversed  = $isReversed")
+        println("expand  = $shouldExpandSequences")
+        println("useGreyBackground = $useGreyBackground")
+        println("quit  = $shouldQuitWhenDone")
         println("hideBallOne = $hideBallOne")
-        println("ext = $ext")
+        println("ext = $fileExtension")
 
     }
 }

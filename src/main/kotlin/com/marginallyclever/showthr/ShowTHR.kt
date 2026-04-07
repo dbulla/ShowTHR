@@ -1,6 +1,5 @@
 package com.marginallyclever.showthr
 
-import com.marginallyclever.showthr.ShowTHR.outputStatus
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Settings
 import java.io.BufferedReader
@@ -68,7 +67,7 @@ object ShowTHR {
 
                 try { // save the image to disk
                     val file = File(settings.outputFilename!!)
-                    ImageIO.write(sandSimulation.bufferedImage, settings.ext, file)
+                    ImageIO.write(sandSimulation.bufferedImage, settings.fileExtension, file)
                     println("Image saved to " + file.absolutePath)
                 } catch (e: IOException) {
                     println("Error saving file " + settings.outputFilename + ": " + e.message)
@@ -164,21 +163,6 @@ object ShowTHR {
 
     // if desired, add a "clean" before the main track
     fun createCleaningTrack(): MutableList<String> {
-        //        if (true) {
-        //            val targetTheta = sequence[0].first
-        //            val targetRho = sequence[0].second
-        //            val initialRho = when (targetRho) {
-        //                0.0  -> 1.0
-        //                else -> 0.0
-        //            }
-        //            val initialTheta = targetTheta - 200.0 * PI
-        //            val newSequence = mutableListOf<Pair<Double, Double>>()
-        //            newSequence.add(Pair(initialTheta, initialRho))
-        //            newSequence.addAll(sequence)
-        //            return newSequence
-        //        }
-        //        else
-        //            return sequence
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
         cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
@@ -199,8 +183,6 @@ object ShowTHR {
                 val (theta2, rho2) = sequence[i + 1]
                 val deltaRho = abs(rho1 - rho2)
                 val deltaTheta = abs(theta1 - theta2)
-                //                val areBothRhosNotZero = rho1 != 0.0 || rho2 != 0.0 // this doesn't really save that much time unless we only have 1 ball
-                //                if (settings.useTwoBalls || areBothRhosNotZero) { // if rhos are zero, skip expanding - unless we have two balls
                 if ((deltaRho > .01 || deltaTheta > 0.1) || (rho1 < .0001 && rho2 < .0001)) {
                     val thetaDiff = theta2 - theta1
                     val rhoDiff = rho2 - rho1
@@ -219,7 +201,6 @@ object ShowTHR {
                         }
                     }
                 }
-                //                }
                 else newSequence.add(Pair(theta1, rho1))
             }
             if (sequence.isNotEmpty()) newSequence.add(sequence.last())
@@ -261,7 +242,6 @@ object ShowTHR {
                     val timeRemainingMs = (numLines * durationMs / index) - durationMs
                     Duration.ofMillis(timeRemainingMs).toString()
                 }
-
                 else      -> "?"
             }
             stringBuilder.append("$shortFilename    $percent    Duration: $duration    timeRemaining: $timeRemaining")
@@ -281,26 +261,33 @@ object ShowTHR {
             """
             
 Usage: ShowTHR inputFile.thr [options]
-Optional:
-    -b    backgroundImageName   Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
-    -c                          No args, if present will generate a "clean.png" image to be used as a background image.
-    -d    initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
-    -e    ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
-    -h    height                Set the image height.  Default is screen height.
-    -hideBall1                  No args, if present, the first ball will not be drawn.
-    -w    width                 Set the image width.  Default is screen width.
-    -skip imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
-    -o    outputFilename        If present, the output file will be written to this file
-    -q                          No args, if present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
-    -r                          No args, if present, the .thr file will be read in reversed order.
-    -s    ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
-    -tableDiameter              Sets the diameter of the sand table.  Default is ${settings.tableDiameterWithPadding}.
-    -useTwoBalls                Tantalus mode - draw with two balls
+Optional flags with arguments:
+    
+    -o              outputFilename        If present, the output file will be written to this file
+    -background     backgroundImageName   Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
+    -depth          initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
+    -deltaTime      deltaTime             Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2.
+    -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
+    -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
+    -ballRadius     ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
+    -tableDiameter  table size            Sets the diameter of the sand table.  Default is ${settings.tableDiameterWithPadding}.
+    -batchTracks    batch track list      List of file names to process - each will draw on top of the previous one.
+
+Optional flags without arguments:
+    -clean            If present, will generate a "clean_SIZE.png" image to be used as a background image.
+    -hideBall1        If present, the first ball will not be drawn.
+    -quit             If present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
+    -reversed         If present, the .thr file will be read in reversed order.
+    -tantalus         Tantalus mode - draw with two balls
+    -grey             Use a grey background instead of a "clean" track background. 
+    -headless"        Generate the image w/o any GUI
+    -hideBall1"       Use two balls, but don't show the first ball.
+
+
     
 Output formats supported: " + ${ImageIO.getWriterFormatNames().contentToString()}
     
                             """.trimIndent()
         )
     }
-
 }

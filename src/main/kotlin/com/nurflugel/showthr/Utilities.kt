@@ -9,6 +9,7 @@ import kotlin.math.sqrt
 
 class Utilities {
     companion object {
+
         /** X and Y are now zeroed in the center of the table */
         fun calculateY(rhoTheta: RhoTheta, settings: Settings): Double {
             val sin = sin(rhoTheta.theta)
@@ -65,7 +66,6 @@ class Utilities {
             val ball1Rho = ball1.positionRhoTheta.rho
             val ball2Rho = ball2.positionRhoTheta.rho
             val armLength = ball1Rho + ball2Rho
-//            println(" Ball1: rho=$ball1Rho, Ball2: rho=$ball2Rho   Total of $armLength ")
             return armLength
         }
     }

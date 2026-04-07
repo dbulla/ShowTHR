@@ -1,6 +1,7 @@
 package com.nurflugel.showthr
 
 import java.awt.BorderLayout
+import java.awt.BorderLayout.CENTER
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -21,8 +22,8 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
         mainPanel.background = Color(backgroundColor)
 
         val scrollPane = JScrollPane(imagePanel)
-        mainPanel.add(scrollPane, BorderLayout.CENTER)
-        add(mainPanel, BorderLayout.CENTER)
+        mainPanel.add(scrollPane, CENTER)
+        add(mainPanel, CENTER)
         imagePanel.updateImage(bufferedImage)
         imagePanel.preferredSize = Dimension(settings.tableDiameterWithPadding, settings.tableDiameterWithPadding)
         imagePanel.size=imagePanel.preferredSize
