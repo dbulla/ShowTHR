@@ -3,6 +3,7 @@ package com.marginallyclever.showthr
 import com.nurflugel.showthr.ImageFrame
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.Utilities.Companion.calculateCornerXY
 import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -18,7 +19,7 @@ import kotlin.math.sqrt
  */
 class SandSimulation(val settings: Settings) {
     // note that we size the table larger than specified - todo - subtract padding from image size
-    private val sandGrid = Array(settings.tableDiameterWithPadding) { DoubleArray(settings.tableDiameterWithPadding) } // 2D array for sand density
+    private val sandGrid = Array(settings.baseTableDiameter) { DoubleArray(settings.baseTableDiameter) } // 2D array for sand density
     val ball = Ball("Ball_1", settings.ballRadius, settings)
     val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball
     private var imageFrame: ImageFrame? = null
@@ -34,21 +35,20 @@ class SandSimulation(val settings: Settings) {
             ball2.setPositionRhoTheta(rhoTheta2)
         }
 
-
         initializeSandGrid(settings.initialSandDepth)
         val backgroundImageFile = File(settings.backgroundImageName)
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
-            else                     -> BufferedImage(settings.tableDiameterWithPadding, settings.tableDiameterWithPadding, TYPE_INT_ARGB)
+            else                     -> BufferedImage(settings.baseTableDiameter, settings.baseTableDiameter, TYPE_INT_ARGB)
         }
         if (!settings.isHeadless) imageFrame = ImageFrame(bufferedImage, settings)
     }
 
     /** Initialize sand grid to uniform density */
     private fun initializeSandGrid(initialSandDepth: Double) {
-        (0..<settings.tableDiameterWithPadding).forEach { i ->
-            (0..<settings.tableDiameterWithPadding).forEach { j ->
+        (0..<settings.baseTableDiameter).forEach { i ->
+            (0..<settings.baseTableDiameter).forEach { j ->
                 sandGrid[i][j] = initialSandDepth // some sand in every square
             }
         }
@@ -65,8 +65,8 @@ class SandSimulation(val settings: Settings) {
     private fun readInCleanedImage(cleanFile: File): BufferedImage {
         val backgroundImage = ImageIO.read(cleanFile)
         // set the sand height to the image
-        (0..<settings.tableDiameterWithPadding).forEach { i ->
-            (0..<settings.tableDiameterWithPadding).forEach { j ->
+        (0..<settings.baseTableDiameter).forEach { i ->
+            (0..<settings.baseTableDiameter).forEach { j ->
                 //                println("i = $i, j = $j")
                 val rgb = backgroundImage.getRGB(i, j)
                 val red: Int = (rgb and 0xff0000) shr 16
@@ -136,12 +136,12 @@ class SandSimulation(val settings: Settings) {
      */
     private fun makeBallPushSand(ball: Ball) {
         // Iterate over the area affected by the ball's radius
-        val ballX = calculateCornerXY(ball.positionXy.x)
-        val ballY = calculateCornerXY(ball.positionXy.y)
+        val ballX = calculateCornerXY(ball.positionXy.x, settings)
+        val ballY = calculateCornerXY(ball.positionXy.y, settings)
         val radius = ball.radius
         for (i in ballX - radius..ballX + radius) {
             for (j in ballY - radius..ballY + radius) {
-                if (i in 0..<settings.tableDiameterWithPadding && j >= 0 && j < settings.tableDiameterWithPadding) {
+                if (i in 0..<settings.baseTableDiameter && j >= 0 && j < settings.baseTableDiameter) {
                     val dx = i - ballX
                     val dy = j - ballY
                     if (isInsideTable(i + dx, j + dy)) {
@@ -172,16 +172,16 @@ class SandSimulation(val settings: Settings) {
 
     /** This method checks if a given (x,y) coordinate is inside the table - (0, 0) is the top-left corner of the table (sand array, not ball coordinates) */
     private fun isInsideTable(x: Int, y: Int): Boolean {
-        val isXInside = x in 0..<settings.tableDiameterWithPadding
-        val isYInside = y in 0..<settings.tableDiameterWithPadding
+        val isXInside = x in 0..<settings.baseTableDiameter
+        val isYInside = y in 0..<settings.baseTableDiameter
         return isXInside && isYInside
     }
 
     private fun relaxSand(ball: Ball, ballRelaxedMargin: Int) {
-        var startX = calculateCornerXY(ball.startPosition.x)
-        var startY = calculateCornerXY(ball.startPosition.y)
-        var endX = calculateCornerXY(ball.positionXy.x)
-        var endY = calculateCornerXY(ball.positionXy.y)
+        var startX = calculateCornerXY(ball.startPosition.x, settings)
+        var startY = calculateCornerXY(ball.startPosition.y, settings)
+        var endX = calculateCornerXY(ball.positionXy.x, settings)
+        var endY = calculateCornerXY(ball.positionXy.y, settings)
 
         if (startX > endX) {
             val temp = startX
@@ -202,8 +202,8 @@ class SandSimulation(val settings: Settings) {
 
         if (startX < 0) startX = 0
         if (startY < 0) startY = 0
-        if (endX >= settings.tableDiameterWithPadding) endX = settings.tableDiameterWithPadding - 1
-        if (endY >= settings.tableDiameterWithPadding) endY = settings.tableDiameterWithPadding - 1
+        if (endX >= settings.baseTableDiameter) endX = settings.baseTableDiameter - 1
+        if (endY >= settings.baseTableDiameter) endY = settings.baseTableDiameter - 1
 
         var settled: Boolean
         do {
@@ -262,8 +262,8 @@ class SandSimulation(val settings: Settings) {
     fun renderSandImage(): BufferedImage {
         var max = 8.5 // setting max dynamically makes the animation flicker - setting it to a constant 8.5 seems acceptable.
 
-        for (x in 0..<settings.tableDiameterWithPadding) {
-            for (y in 0..<settings.tableDiameterWithPadding) {
+        for (x in 0..<settings.baseTableDiameter) {
+            for (y in 0..<settings.baseTableDiameter) {
                 val gray = minOf(255, (sandGrid[x][y] * 30).toInt()) // Simplified calculation
                 bufferedImage.setRGB(x, y, encode32bit(gray))
             }
@@ -272,13 +272,6 @@ class SandSimulation(val settings: Settings) {
         return bufferedImage
     }
 
-    /**
-     * Take an X, Y grid with 0,0 in the center of the grid, and transfer into a coordinate system where 0,0 is in the upper-left corner, so the image can work
-     * Since the table is round, the translation works for both x or y.
-     */
-    private fun calculateCornerXY(centerXy: Double): Int {
-        return centerXy.toInt() + settings.tableRadius + settings.SHOULDER_WIDTH
-    }
 
     /**
      * Encodes an 8-bit greyscale value into a 32-bit ARGB color value.

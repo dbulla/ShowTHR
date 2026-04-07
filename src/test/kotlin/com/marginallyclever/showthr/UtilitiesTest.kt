@@ -50,7 +50,7 @@ class UtilitiesTest {
         val rhoTheta = RhoTheta(rho, theta)
         val settings = Settings().apply { baseTableDiameter = 800; calculateCenter() }
         val result = calculateY(rhoTheta, settings)
-        assertEquals(-400.0, result, 0.0001, "calculateY should compute the correct y value for negative theta and positive rho")
+        assertEquals(-380.0, result, 0.0001, "calculateY should compute the correct y value for negative theta and positive rho")
     }
 
     @Test
@@ -85,7 +85,7 @@ class UtilitiesTest {
     fun `test calculate normalized Rho with point at the edge of the table radius`() {
         val settings = Settings().apply { baseTableDiameter = 200; calculateCenter() }
         val result = calculateRho(100.0, 0.0, settings)
-        assertEquals(1.0, result, "calculateRho should return 1 when the point is at the edge of the table radius")
+        assertEquals(1.25, result, "calculateRho should return 1 when the point is at the edge of the table radius")
     }
 
     @Test

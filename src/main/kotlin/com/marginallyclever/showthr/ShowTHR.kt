@@ -95,14 +95,12 @@ object ShowTHR {
     @OptIn(ExperimentalTime::class)
     @Throws(IOException::class)
     fun processThrFile(filename: String, sandSimulation: SandSimulation) {
-        val file = File(filename)
-        val shortFilename = file.name
         val stringBuilder = StringBuilder()
 
         var previousPercentage = 0.0
         val startTime = Clock.System.now()
 
-        val expandedSequence = extractRhoThetaPairs(file)
+        val expandedSequence = extractRhoThetaPairs(filename)
         if (expandedSequence.isEmpty()) return
         val numLines = expandedSequence.size
 
@@ -114,16 +112,16 @@ object ShowTHR {
         expandedSequence.forEachIndexed { index, it ->
             val rhoTheta = RhoTheta(it.second, it.first)
             sandSimulation.moveToNextRhoTheta(index, rhoTheta)
-            previousPercentage = outputStatus(stringBuilder, shortFilename, index, numLines, previousPercentage, startTime)
+            previousPercentage = outputStatus(stringBuilder, filename, index, numLines, previousPercentage, startTime)
         }
     }
 
-    private fun extractRhoThetaPairs(file: File): MutableList<Pair<Double, Double>> {
+    private fun extractRhoThetaPairs(filename: String): MutableList<Pair<Double, Double>> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
             settings.isGenerateCleanBackdrop -> createCleaningTrack()
             else                             -> {
-                BufferedReader(InputStreamReader(FileInputStream(file))).use { reader ->
+                BufferedReader(InputStreamReader(FileInputStream(File(filename)))).use { reader ->
                     val lineSequence = reader.lineSequence().toMutableList()
                     if (lineSequence.isEmpty()) exitProcess(0)
                     lineSequence
@@ -165,8 +163,11 @@ object ShowTHR {
     fun createCleaningTrack(): MutableList<String> {
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
-        cleaningTrack.add("${settings.NUMBER_OF_TURNS_TO_CLEAN * PI} 1.0")
-        cleaningTrack.add("${(settings.NUMBER_OF_TURNS_TO_CLEAN + 2) * PI} 1.0") // get a nice clean edge
+        val turnsInRadians = settings.NUMBER_OF_TURNS_TO_CLEAN * PI
+        cleaningTrack.add("$turnsInRadians 1.0")
+        // do another 2 PI turns to get a nice clean edge
+        cleaningTrack.add("${turnsInRadians + 4 * PI} 1.0")
+        cleaningTrack.add("${turnsInRadians + 8 * PI} 1.0")
 
         return cleaningTrack
     }
@@ -260,7 +261,13 @@ object ShowTHR {
         print(
             """
             
-Usage: ShowTHR inputFile.thr [options]
+Usage: ./gradlew run --args="-i inputFile.thr [options]"   
+  
+  or, build the jar with 'gradlew shadowJar' and run with 
+  
+  'java -jar build/libs/showthr-all.jar -i inputFile.thr [options]'
+
+
 Optional flags with arguments:
     
     -o              outputFilename        If present, the output file will be written to this file
@@ -270,7 +277,7 @@ Optional flags with arguments:
     -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
     -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
     -ballRadius     ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
-    -tableDiameter  table size            Sets the diameter of the sand table.  Default is ${settings.tableDiameterWithPadding}.
+    -tableDiameter  table size            Sets the diameter of the sand table.  Default is ${settings.baseTableDiameter}.
     -batchTracks    batch track list      List of file names to process - each will draw on top of the previous one.
 
 Optional flags without arguments:

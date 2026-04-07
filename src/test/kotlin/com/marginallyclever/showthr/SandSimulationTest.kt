@@ -2,9 +2,6 @@ package com.marginallyclever.showthr
 
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Settings
-import com.nurflugel.showthr.Utilities.Companion.getArmLength
-import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -24,7 +21,7 @@ class SandSimulationTest {
 
     @BeforeEach
     fun setup() {
-        settings = Settings().apply { tableDiameterWithPadding = 300; calculateCenter() } // Assuming Settings has a parameterless constructor
+        settings = Settings().apply { tableDiameterMinusPadding = 300; calculateCenter() } // Assuming Settings has a parameterless constructor
     }
 
     @Test
@@ -37,14 +34,14 @@ class SandSimulationTest {
         ImageIO.write(image, "png", file)
         println("Image saved to " + file.absolutePath)
     }
-    
+
     @Test
     @Throws(IOException::class)
     fun testSandSimulationSpiral() {
         settings = Settings().apply { baseTableDiameter = 100; ballRadius = 2; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
         sandSimulation.setTarget(RhoTheta(0.0, 100.0))
-        var radius = (settings.tableDiameterWithPadding) / 2.0 - settings.SHOULDER_WIDTH
+        var radius = (settings.tableDiameterMinusPadding) / 2.0 - settings.SHOULDER_WIDTH
         var angleInDegrees = 0.0
         for (iteration in 0..9999) {
             sandSimulation.update()
@@ -52,11 +49,11 @@ class SandSimulationTest {
                 val angleInRadians = Math.toRadians(angleInDegrees)
                 sandSimulation.setTarget(
                     RhoTheta(
-                        settings.tableDiameterWithPadding / 2.0 + sin(angleInRadians) * radius,
-                        settings.tableDiameterWithPadding / 2.0 + cos(angleInRadians) * radius
+                        settings.tableDiameterMinusPadding / 2.0 + sin(angleInRadians) * radius,
+                        settings.tableDiameterMinusPadding / 2.0 + cos(angleInRadians) * radius
                     )
                 )
-                radius = ((settings.tableDiameterWithPadding) / 2.0 - settings.SHOULDER_WIDTH) - (angleInDegrees / 360.0) * 10
+                radius = ((settings.tableDiameterMinusPadding) / 2.0 - settings.SHOULDER_WIDTH) - (angleInDegrees / 360.0) * 10
                 angleInDegrees += 5.0
             }
             if (iteration % 100 == 0) {
@@ -79,9 +76,9 @@ class SandSimulationTest {
     @Order(Integer.MAX_VALUE) // run this last so it saves the image
     @Throws(IOException::class)
     fun testSandSimulationFromFile() {
-        settings = Settings().apply { baseTableDiameter = 100; ballRadius = 2; calculateCenter() }
+        settings = Settings().apply { baseTableDiameter = 200; ballRadius = 2; isHeadless=true; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
-        ShowTHR.processThrFile("src/test/resources/Vaporeon with Waves.thr", sandSimulation)
+        ShowTHR.processThrFile("src/test/resources/Vaporeon_with_Waves.thr", sandSimulation)
 
         val image: BufferedImage = sandSimulation.renderSandImage()
         // save the image to disk

@@ -1,5 +1,6 @@
 package com.nurflugel.showthr
 
+import com.marginallyclever.showthr.ShowTHR.createCleaningTrack
 import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
@@ -34,7 +35,7 @@ class Settings {
     var inputFilename: String? = null
     var outputFilename: String? = null
     var baseTableDiameter = Toolkit.getDefaultToolkit().screenSize.height - 100
-    var tableDiameterWithPadding = 0
+    var tableDiameterMinusPadding = baseTableDiameter - SHOULDER_WIDTH * 2
     var hideBallOne: Boolean = false
     lateinit var fileExtension: String
     var useGreyBackground = false
@@ -42,19 +43,14 @@ class Settings {
     val greenConversion = 244 / 255.0
     val blueConversion = 200 / 255.0
     var isHeadless = false
-    var tableRadius = baseTableDiameter / 2
+    var tableRadius = tableDiameterMinusPadding / 2
 
     var deltaTime = 2 / 10.0  // good starting point
     val batchTracks: MutableList<String> = mutableListOf()
 
     fun calculateCenter() {
-        //        centerX = tableDiameterWithPadding / 2
-        //        centerY = centerX
-        tableRadius = baseTableDiameter / 2 // todo auto remove shoulder width so the image can be exactly the size specified
-        //        maxRadius = tableRadius + SHOULDER_WIDTH
-        // add the extra padding to the base table diameter
-        tableDiameterWithPadding = baseTableDiameter + 2 * SHOULDER_WIDTH
-
+        tableDiameterMinusPadding = baseTableDiameter - SHOULDER_WIDTH * 2
+        tableRadius = tableDiameterMinusPadding / 2
     }
 
     /**
@@ -77,7 +73,11 @@ class Settings {
                     "-grey"          -> useGreyBackground = true
                     "-background"    -> backgroundImageName = setValueFromArg(++index, args)
                     "-tantalus"      -> isTantalus = true
-                    "-clean"         -> isGenerateCleanBackdrop = true
+                    "-clean"         -> {
+                        isGenerateCleanBackdrop = true
+                        isHeadless = true
+                    }
+
                     "-depth"         -> initialSandDepth = setValueFromArg(++index, args).toDouble()
                     "-expand"        -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
                     "-headless"      -> isHeadless = true
@@ -106,11 +106,12 @@ class Settings {
         }
         calculateCenter()
         if (isGenerateCleanBackdrop) {
-            inputFilename = "clean.thr"  // should figure out a better way to noop this
-            backgroundImageName = "clean_${tableDiameterWithPadding}x$tableDiameterWithPadding.png"
-            outputFilename = backgroundImageName
+            inputFilename = "dibble.thr"  // Isn't used, should figure out a better way to noop this
+            //            backgroundImageName = "clean_${baseTableDiameter}.png"
+            outputFilename = "clean_${baseTableDiameter}.png"
             imageSkipCount = 1000
             shouldQuitWhenDone = true
+            batchTracks.add(inputFilename!!)
         }
         else {
             if (batchTracks.isEmpty() && inputFilename != null) {
@@ -123,7 +124,7 @@ class Settings {
             //            outputFilename = inputFilename.replace(".thr", ".png") //JPEG doesn't work for me, only png...
             if (isReversed) outputFilename = outputFilename!!.replace(".png", "_reversed.png")
             if (isTantalus) outputFilename = outputFilename!!.replace(".png", "_tantalus.png")
-            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${tableDiameterWithPadding}x${tableDiameterWithPadding}.png"
+            if (backgroundImageName.trim().isEmpty()) backgroundImageName = "clean_${baseTableDiameter}.png"
         }
 
         // default output name to input name and png

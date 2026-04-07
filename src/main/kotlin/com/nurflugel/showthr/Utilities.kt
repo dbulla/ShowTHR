@@ -62,11 +62,13 @@ class Utilities {
             return RhoTheta(rho, theta)
         }
 
-        fun getArmLength(ball1: Ball, ball2: Ball): Double {
-            val ball1Rho = ball1.positionRhoTheta.rho
-            val ball2Rho = ball2.positionRhoTheta.rho
-            val armLength = ball1Rho + ball2Rho
-            return armLength
+        /**
+         * Take an X, Y grid with 0,0 in the center of the grid, and transfer into a coordinate system where 0,0 is in the upper-left corner, so the image can work
+         * Since the table is round, the translation works for both x or y.
+         */
+        fun calculateCornerXY(centerXy: Double, settings: Settings): Int {
+            return centerXy.toInt() + settings.tableRadius + settings.SHOULDER_WIDTH
         }
+
     }
 }

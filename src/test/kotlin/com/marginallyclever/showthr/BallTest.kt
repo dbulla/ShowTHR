@@ -15,7 +15,7 @@ internal class BallTest {
 
     @BeforeEach
     fun setup() {
-        settings = Settings().apply { tableDiameterWithPadding = 200; calculateCenter() } // Assuming Settings has a parameterless constructor
+        settings = Settings().apply { tableDiameterMinusPadding = 200; calculateCenter() } // Assuming Settings has a parameterless constructor
     }
 
     @Test

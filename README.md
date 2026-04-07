@@ -4,23 +4,48 @@ Read a THR file and simulate the motion of a ball rolling over a table covered i
 
 ## Usage
 
-Get the [Release](https://github.com/MarginallyClever/ShowTHR/releases) version or build it yourself from source code.
-Run it from the command line:
+Get the [Release](https://github.com/dbulla/ShowTHR/releases) version or build it yourself from source code after creating the jar file with Gradle: ```./gradlew shadowJar```.
+Then, run it from the command line :
 
-```java -jar ShowTHR.jar <source.thr> <output> [-w <width>] [-h <height>] [-d <depth>] [-b <radius>]```
+```java -jar ShowTHR-all.jar -i <inputFile.thr> [options]``` or ```java -jar build/libs/ShowTHR-all.jar -i <inputFile.thr> [options]```
+
+Better yet, just run via Gradle: 
+```./gradlew run --args="-i <inputFile.thr> [options]```
 
 where `<requires a value>` and `[optional parts]`
 
-- `<source.thr>`: The path to the THR file.
-- `<output>`: The path to the output file.  ImageIO supported formats are accepted, including pio and webp.
-- `-w <width>`: The width of the output image.  Default is 300.
-- `-h <height>`: The height of the output image.  Default is 300.
-- `-b <radius>`: The radius of the ball.  Default is 5.
-- `-d <depth>`: The starting depth of the sand.  Default is 2.
+Optional flags with arguments:
+
+| Option               | Type   | Meaning                                                                                                                 |
+|----------------------|--------|-------------------------------------------------------------------------------------------------------------------------|
+| ```-i```             | String | Mandatory, name of the .thr track to read in                                                                            |
+| ```-o```             | String | If present, the output file will be written to this file name                                                           |
+| ```-background```    | String | Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.  |
+| ```-depth```         | Int    | Initial depth of the sand.  Default is 2.  Ignored if you have a background image.                                      |
+| ```-deltaTime```     | Int    | Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2. |
+| ```-skip```          | Int    | How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)                 |
+| ```-ballRadius```    | Int    | Sets the ball size.  Default is 5.                                                                                      |
+| ```-tableDiameter``` | Int    | Sets the diameter of the sand table.  Default is the screen height                                                      |
+| ```-batchTracks```   | String | List of file names to process, separated by commas - each will draw on top of the previous one.                         |
+
+Optional flags without arguments:
+
+| Option           | Meaning                                                                                                                        |
+|------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| ```-clean```     | If present, will generate a "clean_SIZE.png" image to be used as a background image.  Use with ```-tableDiameter```            |
+| ```-quit```      | If present, the program will quit after it has saved the image to file.  Else, it will stop with the image displayed (default) |
+| ```-reversed```  | If present, the .thr file will be read in reversed order.                                                                      |
+| ```tantalus```   | Tantalus mode - draw with two balls!                                                                                           |
+| ```-grey```      | Use a grey background instead of a "clean" track background.                                                                   |
+| ```-headless```  | Generate the image w/o any GUI, exits after the image is saved to disk                                                         |
+| ```-hideBall1``` | If present, the first ball will not be drawn (used with ```-tantalus```)                                                       |
+| ```-expand```    | ExpandSequences -  If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues                  |
+
+
 
 ## Example
 
-```java -jar ShowTHR.jar "src/test/resources/Vaporeon with Waves.thr" sand_simulation.png -w 1000 -h 1000```
+```./gradlew run --args= "-i src/test/resources/Vaporeon_with_Waves.thr" -tableDiameter 1000```
 
 should produce the following:
 
@@ -38,12 +63,11 @@ slightly larger than the table we wanted (by 20 pixels, so if we'd asked for a 1
 
 The fact that the image comes out a little larger is because of the padding.  TODO - subtract the padding from the table diameter when inputting.
 
-![Table Geometry](table_geometry.png)
+![Table Geometry](Sisyphus Table Geometry.png)
 
 ## Tantalus mode
-You can simulate having 2 balls with the "-useTwoBalls" flag.  The first ball is the "normal" 
+You can simulate having 2 balls with the "-tantaluis" flag.  The first ball is the "normal" 
 ball, the second is on the opposite side of the arm.
-
 
 
 ## Notes
