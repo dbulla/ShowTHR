@@ -76,7 +76,7 @@ class SandSimulationTest {
     @Order(Integer.MAX_VALUE) // run this last so it saves the image
     @Throws(IOException::class)
     fun testSandSimulationFromFile() {
-        settings = Settings().apply { baseTableDiameter = 200; ballRadius = 2; isHeadless=true; calculateCenter() }
+        settings = Settings().apply { baseTableDiameter = 400; ballRadius = 2; isHeadless=true; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
         ShowTHR.processThrFile("src/test/resources/Vaporeon_with_Waves.thr", sandSimulation)
 
