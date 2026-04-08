@@ -12,6 +12,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -283,9 +284,9 @@ class SandSimulation(val settings: Settings) {
     private fun encode32bit(greyscale: Int): Int {
         var newGreyscale = greyscale
         newGreyscale = newGreyscale and 0xff
-        val red: Int = (newGreyscale * settings.redConversion).toInt()
-        val green: Int = (newGreyscale * settings.greenConversion).toInt()
-        val blue: Int = (newGreyscale * settings.blueConversion).toInt()
+        val red: Int = min((newGreyscale * settings.redConversion).toInt(),255)
+        val green: Int = min((newGreyscale * settings.greenConversion).toInt(),255)
+        val blue:  Int = min((newGreyscale * settings.blueConversion).toInt(),255)
         val resultRgb = when {
             settings.useGreyBackground -> Color(newGreyscale, newGreyscale, newGreyscale).rgb
             else                       -> Color(red, green, blue).rgb

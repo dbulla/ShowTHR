@@ -1,6 +1,5 @@
 package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.Ball
 import java.lang.Math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -25,7 +24,7 @@ class Utilities {
             return newXoffset
         }
 
-        fun setValueFromArg(index: Int, args: Array<String>): String {
+        fun getValueFromArg(index: Int, args: Array<String>): String {
             if (index < args.size) {
                 return args[index].trim { it <= ' ' }
             }

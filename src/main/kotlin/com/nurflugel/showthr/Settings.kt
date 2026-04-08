@@ -1,7 +1,6 @@
 package com.nurflugel.showthr
 
-import com.marginallyclever.showthr.ShowTHR.createCleaningTrack
-import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities.Companion.getValueFromArg
 import java.awt.Toolkit
 import javax.imageio.ImageIO
 
@@ -39,9 +38,9 @@ class Settings {
     var hideBallOne: Boolean = false
     lateinit var fileExtension: String
     var useGreyBackground = false
-    val redConversion = 255 / 255.0
-    val greenConversion = 244 / 255.0
-    val blueConversion = 200 / 255.0
+    val redConversion   = 1.2 * 255 / 255.0
+    val greenConversion = 1.2 * 244 / 255.0
+    val blueConversion  = 1.2 * 200 / 255.0
     var isHeadless = false
     var tableRadius = tableDiameterMinusPadding / 2
 
@@ -69,30 +68,30 @@ class Settings {
             while (index < args.size) {
                 when (args[index]) {
                     "-i"             -> inputFilename = args[++index]
-                    "-o"             -> outputFilename = setValueFromArg(++index, args)
+                    "-o"             -> outputFilename = getValueFromArg(++index, args)
                     "-grey"          -> useGreyBackground = true
-                    "-background"    -> backgroundImageName = setValueFromArg(++index, args)
+                    "-background"    -> backgroundImageName = getValueFromArg(++index, args)
                     "-tantalus"      -> isTantalus = true
                     "-clean"         -> {
                         isGenerateCleanBackdrop = true
                         isHeadless = true
                     }
 
-                    "-depth"         -> initialSandDepth = setValueFromArg(++index, args).toDouble()
-                    "-expand"        -> shouldExpandSequences = setValueFromArg(++index, args).toBoolean()
+                    "-depth"         -> initialSandDepth = getValueFromArg(++index, args).toDouble()
+                    "-expand"        -> shouldExpandSequences = getValueFromArg(++index, args).toBoolean()
                     "-headless"      -> isHeadless = true
                     "-hideBall1"     -> {
                         hideBallOne = true
                         isTantalus = true
                     }
 
-                    "-skip"          -> imageSkipCount = setValueFromArg(++index, args).toInt()
+                    "-skip"          -> imageSkipCount = getValueFromArg(++index, args).toInt()
                     "-quit"          -> shouldQuitWhenDone = true
                     "-reversed"      -> isReversed = true
-                    "-ballRadius"    -> ballRadius = setValueFromArg(++index, args).toInt()
-                    "-tableDiameter" -> baseTableDiameter = setValueFromArg(++index, args).toInt()
-                    "-batchTracks"   -> batchTracks.addAll(setValueFromArg(++index, args).split(","))
-                    "-deltaTime"     -> deltaTime = setValueFromArg(++index, args).toDouble() / 10.0
+                    "-ballRadius"    -> ballRadius = getValueFromArg(++index, args).toInt()
+                    "-tableDiameter" -> baseTableDiameter = getValueFromArg(++index, args).toInt()
+                    "-batchTracks"   -> batchTracks.addAll(getValueFromArg(++index, args).split(","))
+                    "-deltaTime"     -> deltaTime = getValueFromArg(++index, args).toDouble() / 10.0
                     else             -> {
                         println("Unknown option " + args[index])
                         return false
@@ -107,7 +106,6 @@ class Settings {
         calculateCenter()
         if (isGenerateCleanBackdrop) {
             inputFilename = "dibble.thr"  // Isn't used, should figure out a better way to noop this
-            //            backgroundImageName = "clean_${baseTableDiameter}.png"
             outputFilename = "clean_${baseTableDiameter}.png"
             imageSkipCount = 1000
             shouldQuitWhenDone = true

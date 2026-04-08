@@ -5,7 +5,7 @@ import com.nurflugel.showthr.Utilities.Companion.calculateRho
 import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
-import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities.Companion.getValueFromArg
 import com.nurflugel.showthr.Settings
 import java.lang.Math.PI
 import kotlin.test.Test
@@ -152,7 +152,7 @@ class UtilitiesTest {
     @Test
     fun `test setValueFromArg with valid index`() {
         val args = arrayOf("arg1", "arg2", "arg3")
-        val result = setValueFromArg(1, args)
+        val result = getValueFromArg(1, args)
         assertEquals("arg2", result, "setValueFromArg should return the argument at the specified index")
     }
 
@@ -160,7 +160,7 @@ class UtilitiesTest {
     fun `test setValueFromArg with missing index error`() {
         val args = arrayOf("arg1", "arg2", "arg3")
         val exception = assertFailsWith<IllegalArgumentException> {
-            setValueFromArg(3, args)
+            getValueFromArg(3, args)
         }
         assertEquals("Missing value for arg3", exception.message, "setValueFromArg should throw an exception with the correct missing value error")
     }

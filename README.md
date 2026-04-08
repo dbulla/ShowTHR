@@ -16,17 +16,17 @@ where `<requires a value>` and `[optional parts]`
 
 Optional flags with arguments:
 
-| Option               | Type   | Meaning                                                                                                                 |
-|----------------------|--------|-------------------------------------------------------------------------------------------------------------------------|
-| ```-i```             | String | Mandatory, name of the .thr track to read in                                                                            |
-| ```-o```             | String | If present, the output file will be written to this file name                                                           |
-| ```-background```    | String | Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.  |
-| ```-depth```         | Int    | Initial depth of the sand.  Default is 2.  Ignored if you have a background image.                                      |
-| ```-deltaTime```     | Int    | Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2. |
-| ```-skip```          | Int    | How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)                 |
-| ```-ballRadius```    | Int    | Sets the ball size.  Default is 5.                                                                                      |
-| ```-tableDiameter``` | Int    | Sets the diameter of the sand table.  Default is the screen height                                                      |
-| ```-batchTracks```   | String | List of file names to process, separated by commas - each will draw on top of the previous one.                         |
+| Option                  | Type   | Meaning                                                                                                                 |
+|-------------------------|--------|-------------------------------------------------------------------------------------------------------------------------|
+| ```-i```                | String | Mandatory, name of the .thr track to read in                                                                            |
+| ```-o```                | String | If present, the output file will be written to this file name                                                           |
+| ```-background```       | String | Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.  |
+| ```-depth```            | Int    | Initial depth of the sand.  Default is 2.  Ignored if you have a background image.                                      |
+| ```-deltaTime```        | Int    | Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2. |
+| ```-skip```             | Int    | How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)                 |
+| ```-ballRadius```       | Int    | Sets the ball size.  Default is 5.                                                                                      |
+| ```-tableDiameter```    | Int    | Sets the diameter of the sand table.  Default is the screen height                                                      |
+| ```-batchTracks```      | String | List of file names to process, separated by commas - each will draw on top of the previous one.                         |
 
 Optional flags without arguments:
 
@@ -48,18 +48,14 @@ Optional flags without arguments:
 ```./gradlew run --args= "-i src/test/resources/clockworkSwirl5WithClipping.thr" -tableDiameter 1000```
 
 should produce the following:
+
 ![Example](src/test/resources/clockworkSwirl5WithClipping.png)
+
 ## Table Geometry
 - The table is round, with polar coordinates that put 0,0 at the center. 
 - The sand matrix is represented as a 2D array of points – that goes from -1/2 table diameter + padding to 1/2 table diameter + padding - with (0, 0) at it's center.
 - However, the image itself is a 2D array of pixels – that goes from 0 to table diameter + 2*padding - with (0,0) at the top left corner.
-
 - So, although the tracks are lists of theta-rho values, these have to be converted to x,y coordinates for computational purposes.
-
-Making things tougher is that the table has a "shoulder" outside of rho=1.  So, the sand is 
-slightly larger than the table we wanted (by 20 pixels, so if we'd asked for a 1000 pixels-wide table, we actually get 1040 to handle the overflow), and we have to take that into account, too.
-
-The fact that the image comes out a little larger is because of the padding.  TODO - subtract the padding from the table diameter when inputting.
 
 ![Table Geometry](Sisyphus Table Geometry.png)
 

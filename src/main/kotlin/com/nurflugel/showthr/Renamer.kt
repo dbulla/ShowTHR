@@ -1,6 +1,6 @@
 package com.nurflugel.showthr
 
-import com.nurflugel.showthr.Utilities.Companion.setValueFromArg
+import com.nurflugel.showthr.Utilities.Companion.getValueFromArg
 import java.io.File
 
 /** This class will rename all the files in a directory to have a number prefix.
@@ -25,8 +25,8 @@ object Renamer {
             var index = 0
             while (index < args.size) {
                 when (args[index]) {
-                    "-sourceDir" -> sourceDirectory = File(setValueFromArg(++index, args))
-                    "-targetDir" -> targetDirectory = File(setValueFromArg(++index, args))
+                    "-sourceDir" -> sourceDirectory = File(getValueFromArg(++index, args))
+                    "-targetDir" -> targetDirectory = File(getValueFromArg(++index, args))
                     else         -> {
                         println("Unknown option " + args[index])
                         return
