@@ -64,7 +64,7 @@ The fact that the image comes out a little larger is because of the padding.  TO
 ![Table Geometry](Sisyphus Table Geometry.png)
 
 ## Tantalus mode
-You can simulate having 2 balls with the "-tantaluis" flag.  The first ball is the "normal" 
+You can simulate having 2 balls with the "-tantalus" flag.  The first ball is the "normal" 
 ball, the second is on the opposite side of the arm.
 
 
