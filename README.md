@@ -45,16 +45,14 @@ Optional flags without arguments:
 
 ## Example
 
-```./gradlew run --args= "-i src/test/resources/Vaporeon_with_Waves.thr" -tableDiameter 1000```
+```./gradlew run --args= "-i src/test/resources/clockworkSwirl5WithClipping.thr" -tableDiameter 1000```
 
 should produce the following:
-
-![Example](sand_simulation.png)
-
+![Example](src/test/resources/clockworkSwirl5WithClipping.png)
 ## Table Geometry
-- The table is round, with polar coordinates that puts 0,0 at the center. 
-- The sand matrix is represented as a 2D array of points - that goes from -1/2 table diameter + padding to 1/2 table diameter + padding - with (0, 0) at it's center.
-- However, the image itself is a 2D array of pixels - that goes from 0 to table diameter + 2*padding - with (0,0) at the top left corner.
+- The table is round, with polar coordinates that put 0,0 at the center. 
+- The sand matrix is represented as a 2D array of points – that goes from -1/2 table diameter + padding to 1/2 table diameter + padding - with (0, 0) at it's center.
+- However, the image itself is a 2D array of pixels – that goes from 0 to table diameter + 2*padding - with (0,0) at the top left corner.
 
 - So, although the tracks are lists of theta-rho values, these have to be converted to x,y coordinates for computational purposes.
 
