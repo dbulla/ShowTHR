@@ -57,7 +57,7 @@ should produce the following:
 - However, the image itself is a 2D array of pixels – that goes from 0 to table diameter + 2*padding - with (0,0) at the top left corner.
 - So, although the tracks are lists of theta-rho values, these have to be converted to x,y coordinates for computational purposes.
 
-![Table Geometry](Sisyphus Table Geometry.png)
+![Table Geometry](Sisyphus_Table_Geometry.png)
 
 ## Tantalus mode
 You can simulate having 2 balls with the "-tantalus" flag.  The first ball is the "normal" 
