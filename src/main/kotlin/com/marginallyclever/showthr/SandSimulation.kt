@@ -4,12 +4,14 @@ import com.nurflugel.showthr.ImageFrame
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateCornerXY
+import com.nurflugel.showthr.Utilities.Companion.calculateDistance
 import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -106,10 +108,31 @@ class SandSimulation(val settings: Settings) {
             relaxSand(ball, ballRelaxedMargin)
         }
         if (settings.isTantalus) {
-            // force ball 2 to mirror ball 1
-            ball2.setPositionRhoTheta(getBall2RhoTheta(rhoTheta))
-            makeBallPushSand(ball2)
-            relaxSand(ball2, ball2RelaxedMargin)
+            // force ball 2 to mirror ball 1 - BUT - when main ball rho is small and delta theta is large, we get large jumps between ball 2's positions - so we must split
+            //            these large jumps into smaller ones.
+            val newBall2RhoTheta = getBall2RhoTheta(rhoTheta)
+            if (ball.positionRhoTheta.rho < 50) {
+                val currentBall2RhoTheta = ball2.positionRhoTheta
+
+                if (calculateDistance(rhoTheta, newBall2RhoTheta, settings) > 2) {
+                    val deltaRho = newBall2RhoTheta.rho - currentBall2RhoTheta.rho
+                    val deltaTheta = newBall2RhoTheta.theta - currentBall2RhoTheta.theta
+                    val numSteps = max(1, abs(deltaTheta / .01).toInt())
+                    val deltaThetaPerStep = deltaTheta / numSteps
+                    var ball2TransitionalRhoTheta = currentBall2RhoTheta
+                    for (i in 0 until numSteps) {
+                        ball2TransitionalRhoTheta = RhoTheta(ball2TransitionalRhoTheta.rho + deltaRho, ball2TransitionalRhoTheta.theta + deltaThetaPerStep)
+                        ball2.setPositionRhoTheta(ball2TransitionalRhoTheta)
+                        makeBallPushSand(ball2)
+                        relaxSand(ball2, ball2RelaxedMargin)
+                    }
+                }
+            }
+            else {
+                ball2.setPositionRhoTheta(newBall2RhoTheta)
+                makeBallPushSand(ball2)
+                relaxSand(ball2, ball2RelaxedMargin)
+            }
         }
     }
 
@@ -284,9 +307,9 @@ class SandSimulation(val settings: Settings) {
     private fun encode32bit(greyscale: Int): Int {
         var newGreyscale = greyscale
         newGreyscale = newGreyscale and 0xff
-        val red: Int = min((newGreyscale * settings.redConversion).toInt(),255)
-        val green: Int = min((newGreyscale * settings.greenConversion).toInt(),255)
-        val blue:  Int = min((newGreyscale * settings.blueConversion).toInt(),255)
+        val red: Int = min((newGreyscale * settings.redConversion).toInt(), 255)
+        val green: Int = min((newGreyscale * settings.greenConversion).toInt(), 255)
+        val blue: Int = min((newGreyscale * settings.blueConversion).toInt(), 255)
         val resultRgb = when {
             settings.useGreyBackground -> Color(newGreyscale, newGreyscale, newGreyscale).rgb
             else                       -> Color(red, green, blue).rgb

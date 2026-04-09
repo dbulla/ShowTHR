@@ -69,5 +69,8 @@ class Utilities {
             return centerXy.toInt() + settings.tableRadius + settings.SHOULDER_WIDTH
         }
 
+        fun calculateDistance(rhoTheta1: RhoTheta, rhoTheta2: RhoTheta, settings: Settings): Double =
+            settings.baseTableDiameter * sqrt(rhoTheta1.rho * rhoTheta1.rho + rhoTheta2.rho * rhoTheta2.rho - 2 * rhoTheta1.rho * rhoTheta2.rho * cos(rhoTheta2.theta - rhoTheta1.theta))
+
     }
 }

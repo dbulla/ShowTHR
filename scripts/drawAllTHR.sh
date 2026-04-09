@@ -1,8 +1,8 @@
 #!/bin/bash
 
+# Builds the app, then draws all the .thr files in the given directory
 
 # Specify the directory and file extension
-#directory="SisyphusTracks"
 directory="$1"
 extension=".thr"
 

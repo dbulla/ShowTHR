@@ -69,6 +69,13 @@ ball, the second is on the opposite side of the arm.
 The intensity of the output image is dictated by the highest peak in the sand simulation.  The output image is normalized to the range [0, 255].
 If one point of sand is very tall, the rest of the image will be very dark.
 
+## Todos
+
+- Make it so you can view the table at an angle
+- Get rid of script to browse dirs, add option to do it from the app?
+- Add the ability to save all images and make an animation from them
+
+
 ## License
 
 Apache 2.0 License

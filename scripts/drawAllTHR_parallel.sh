@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Builds the app, then draws all the .thr files in the given directory, in parallel.  By definition, this MUST use -headless,
+# or else you're going to end up with GUIs everywhere.
 
 # Specify the directory and file extension
 #directory="SisyphusTracks"
