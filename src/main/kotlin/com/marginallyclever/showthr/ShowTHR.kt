@@ -2,6 +2,7 @@ package com.marginallyclever.showthr
 
 import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -107,7 +108,9 @@ object ShowTHR {
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         val firstTheta = expandedSequence.first().first
         val firstRho = expandedSequence.first().second
-        sandSimulation.setTarget(RhoTheta(firstRho, firstTheta))
+        val firstRhoTheta = RhoTheta(firstRho, firstTheta)
+        val ball2RhoTheta = getBall2RhoTheta(firstRhoTheta)
+        sandSimulation.setTarget(firstRhoTheta, ball2RhoTheta)
 
         expandedSequence.forEachIndexed { index, it ->
             val rhoTheta = RhoTheta(it.second, it.first)

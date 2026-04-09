@@ -40,7 +40,7 @@ class SandSimulationTest {
     fun testSandSimulationSpiral() {
         settings = Settings().apply { baseTableDiameter = 100; ballRadius = 2; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
-        sandSimulation.setTarget(RhoTheta(0.0, 100.0))
+        sandSimulation.setTarget(RhoTheta(0.0, 100.0),RhoTheta(0.0, 100.0) )
         var radius = (settings.tableDiameterMinusPadding) / 2.0 - settings.SHOULDER_WIDTH
         var angleInDegrees = 0.0
         for (iteration in 0..9999) {
@@ -51,7 +51,8 @@ class SandSimulationTest {
                     RhoTheta(
                         settings.tableDiameterMinusPadding / 2.0 + sin(angleInRadians) * radius,
                         settings.tableDiameterMinusPadding / 2.0 + cos(angleInRadians) * radius
-                    )
+                    ),
+                    RhoTheta(0.0, 100.0)
                 )
                 radius = ((settings.tableDiameterMinusPadding) / 2.0 - settings.SHOULDER_WIDTH) - (angleInDegrees / 360.0) * 10
                 angleInDegrees += 5.0

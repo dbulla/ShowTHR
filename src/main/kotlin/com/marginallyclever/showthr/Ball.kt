@@ -35,7 +35,7 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
         val diff = Vector2d(target)
         diff.sub(positionXy)
         val lengthSquared = diff.lengthSquared()
-        atTarget = lengthSquared < 0.1
+        atTarget = lengthSquared < 0.001
         // we need this for the relaxation step
         startPosition = positionXy
     }
