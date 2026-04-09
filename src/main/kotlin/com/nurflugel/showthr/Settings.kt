@@ -157,6 +157,7 @@ class Settings {
         println("quit  = $shouldQuitWhenDone")
         println("hideBallOne = $hideBallOne")
         println("ext = $fileExtension")
+        println("isHeadless = $isHeadless")
 
     }
 }

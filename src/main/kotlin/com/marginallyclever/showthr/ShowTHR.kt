@@ -114,6 +114,7 @@ object ShowTHR {
             sandSimulation.moveToNextRhoTheta(index, rhoTheta)
             previousPercentage = outputStatus(stringBuilder, filename, index, numLines, previousPercentage, startTime)
         }
+        sandSimulation.renderSandImage()
     }
 
     private fun extractRhoThetaPairs(filename: String): MutableList<Pair<Double, Double>> {
