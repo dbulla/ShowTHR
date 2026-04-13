@@ -53,8 +53,8 @@ java {
 
 application {
     mainClass = "com.marginallyclever.showthr.ShowTHR"
-//    group = "com.marginallyclever"
-//    version = "0.0.1-SNAPSHOT"
+    group = "com.nurflugel"
+    version = "1.0.0"
 }
 
 tasks.named<Test>("test") {
@@ -67,7 +67,6 @@ tasks.register<JavaExec>("runRenamer") {
     description = "Runs Renamer"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass = "com.nurflugel.showthr.Renamer"
-    //    args( "/Users/douglas_bullard/dev/github/douglasBullard/sisyphus-table-pattern-maker/images4")
 }
 
 tasks.register<JavaExec>("runAnalyzeOutput") {
