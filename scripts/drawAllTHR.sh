@@ -18,13 +18,15 @@ for file in "$directory"/*"$extension"; do
     # Check if the file is a regular file
     if [ -f "$file" ]; then
         # Execute the command on the file
-        $command -i "$file" -q -h 500 -w 500 -headless
+        $command -i "$file" -tableDiameter 1500 -skip 20 -quit
+        $command -i "$file" -tableDiameter 1500 -skip 20 -quit -tantalus
+
         # display the image when it's done
 #        open "${file/.thr/.png}"
         echo
         echo
         echo
-        sleep 0.1
+        sleep 0.2
     fi
 #    break
 done

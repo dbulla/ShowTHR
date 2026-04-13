@@ -12,6 +12,7 @@ plugins {
     id( "com.gradleup.shadow") version "9.4.1"
     id("com.github.ben-manes.versions") version "0.53.0"
     id("com.dorongold.task-tree") version "4.0.1"
+    kotlin("plugin.serialization") version "2.3.20"
 //    id("io.ktor.plugin") version "3.3.1"
 }
 
@@ -36,6 +37,7 @@ dependencies {
 //    implementation("io.ktor:ktor-server-html-builder")
 //    implementation("io.ktor:ktor-server-netty")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")

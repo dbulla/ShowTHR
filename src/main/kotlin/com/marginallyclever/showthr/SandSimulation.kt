@@ -43,7 +43,9 @@ class SandSimulation(val settings: Settings) {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
             else                     -> BufferedImage(settings.baseTableDiameter, settings.baseTableDiameter, TYPE_INT_ARGB)
         }
-        if (!settings.isHeadless) imageFrame = ImageFrame(bufferedImage, settings)
+        if (!settings.isHeadless) {
+            imageFrame = ImageFrame(bufferedImage, settings)
+        }
     }
 
     /** Initialize sand grid to uniform density */
@@ -118,6 +120,11 @@ class SandSimulation(val settings: Settings) {
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         if (index == 0) {
             setInitialBallPosition(rhoTheta, ball2RhoTheta)
+        }
+        /// set update based on ball1 rho - if small (<.05), set update to 1/10 it's normal value
+        settings.deltaTime = when {
+            settings.isTantalus && rhoTheta.rho < .1 -> settings.baseDeltaTime / 20.0
+            else               -> settings.baseDeltaTime
         }
         setTarget(rhoTheta, ball2RhoTheta)
         var count = 0

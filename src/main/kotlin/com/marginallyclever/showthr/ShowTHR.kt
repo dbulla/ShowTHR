@@ -274,12 +274,12 @@ Usage: ./gradlew run --args="-i inputFile.thr [options]"
 
 Optional flags with arguments:
     
-    -o              outputFilename        If present, the output file will be written to this file
+    -o              outputFilename        If present, the output file will be written to this file.
     -background     backgroundImageName   Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
     -depth          initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
     -deltaTime      deltaTime             Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2.
-    -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
-    -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
+    -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues.
+    -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier).
     -ballRadius     ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
     -tableDiameter  table size            Sets the diameter of the sand table.  Default is ${settings.baseTableDiameter}.
     -batchTracks    batch track list      List of file names to process - each will draw on top of the previous one.
@@ -287,12 +287,13 @@ Optional flags with arguments:
 Optional flags without arguments:
     -clean            If present, will generate a "clean_SIZE.png" image to be used as a background image.
     -hideBall1        If present, the first ball will not be drawn.
-    -quit             If present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
+    -quit             If present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default).
     -reversed         If present, the .thr file will be read in reversed order.
-    -tantalus         Tantalus mode - draw with two balls
+    -tantalus         Tantalus mode - draw with two balls.
     -grey             Use a grey background instead of a "clean" track background. 
-    -headless"        Generate the image w/o any GUI
-    -hideBall1"       Use two balls, but don't show the first ball.
+    -headless         Generate the image w/o any GUI.
+    -hideBall1        Use two balls, but don't show the first ball.
+    -wait             Wait for the space bar to be pressed before starting the animation.  Useful for screen recording.
 
 
     
