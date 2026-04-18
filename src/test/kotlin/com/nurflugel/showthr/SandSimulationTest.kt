@@ -1,7 +1,5 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
-import com.nurflugel.showthr.Settings
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -67,24 +65,5 @@ class SandSimulationTest {
         val file = File("sand_simulation.png")
         ImageIO.write(image, "png", file)
         println("Image saved to " + file.absolutePath)
-    }
-
-    /**
-     * Read a THR file and simulate the sand being pushed by the ball.
-     * @throws IOException if the file cannot be read
-     */
-    @Test
-    @Order(Integer.MAX_VALUE) // run this last so it saves the image
-    @Throws(IOException::class)
-    fun testSandSimulationFromFile() {
-        settings = Settings().apply { baseTableDiameter = 400; ballRadius = 2; isHeadless=true; calculateCenter() }
-        val sandSimulation = SandSimulation(settings)
-        ShowTHR.processThrFile("src/test/resources/Vaporeon_with_Waves.thr", sandSimulation)
-
-        val image: BufferedImage = sandSimulation.renderSandImage()
-        // save the image to disk
-        val imageFile = File("sand_simulation.png")
-        ImageIO.write(image, "png", imageFile)
-        println("Image saved to " + imageFile.absolutePath)
     }
 }

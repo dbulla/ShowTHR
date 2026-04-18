@@ -14,6 +14,8 @@ import kotlin.text.isNotEmpty
 class Settings {
 
 
+
+
     @Suppress("PrivatePropertyName")
     private val PREFERENCES_KEY = "showThr"
     private val preferences: Preferences = Preferences.userNodeForPackage(Settings::class.java)
@@ -32,7 +34,9 @@ class Settings {
     var shouldExpandSequences = true
     val NUMBER_OF_TURNS_TO_CLEAN = 200
     var isTantalus = false
-
+    var quitOnClose = true
+    var saveImage = true
+    var ignoreRho=false
     /**
      * At the perimeter of the table, the ball can push the sand past the 1.0 rho level - we want to see
      * that (it looks odd if it's clipped) - so the table is actually a little larger than the rho of 1.0 - by SHOULDER_WIDTH pixels.
@@ -98,33 +102,37 @@ class Settings {
             var index = 0
             while (index < args.size) {
                 when (args[index]) {
-                    "-i"             -> inputFilename = args[++index]
-                    "-o"             -> outputFilename = getValueFromArg(++index, args)
-                    "-grey"          -> useGreyBackground = true
-                    "-background"    -> backgroundImageName = getValueFromArg(++index, args)
-                    "-tantalus"      -> isTantalus = true
-                    "-clean"         -> {
+                    "-i"               -> inputFilename = args[++index]
+                    "-o"               -> outputFilename = getValueFromArg(++index, args)
+                    "-grey"            -> useGreyBackground = true
+                    "-background"      -> backgroundImageName = getValueFromArg(++index, args)
+                    "-tantalus"        -> isTantalus = true
+                    "-clean"           -> {
                         isGenerateCleanBackdrop = true
                         isHeadless = true
                     }
-                    "-center"        -> frameLocation = null
-                    "-depth"         -> initialSandDepth = getValueFromArg(++index, args).toDouble()
-                    "-expand"        -> shouldExpandSequences = getValueFromArg(++index, args).toBoolean()
-                    "-headless"      -> isHeadless = true
-                    "-hideBall1"     -> {
+
+                    "-center"          -> frameLocation = null
+                    "-depth"           -> initialSandDepth = getValueFromArg(++index, args).toDouble()
+                    "-expand"          -> shouldExpandSequences = getValueFromArg(++index, args).toBoolean()
+                    "-headless"        -> isHeadless = true
+                    "-hideBall1"       -> {
                         hideBallOne = true
                         isTantalus = true
                     }
 
-                    "-wait"          -> waitForSpaceBar = true
-                    "-skip"          -> imageSkipCount = getValueFromArg(++index, args).toInt()
-                    "-quit"          -> shouldQuitWhenDone = true
-                    "-reversed"      -> isReversed = true
-                    "-ballRadius"    -> ballRadius = getValueFromArg(++index, args).toInt()
-                    "-tableDiameter" -> baseTableDiameter = getValueFromArg(++index, args).toInt()
-                    "-batchTracks"   -> batchTracks.addAll(getValueFromArg(++index, args).split(","))
-                    "-deltaTime"     -> baseDeltaTime = getValueFromArg(++index, args).toDouble() / 10.0
-                    else             -> {
+                    "-ignoreRho"   -> ignoreRho = true
+                    "-dontSaveImage"   -> saveImage = false
+                    "-dontQuitOnClose" -> quitOnClose = false
+                    "-wait"            -> waitForSpaceBar = true
+                    "-skip"            -> imageSkipCount = getValueFromArg(++index, args).toInt()
+                    "-quit"            -> shouldQuitWhenDone = true
+                    "-reversed"        -> isReversed = true
+                    "-ballRadius"      -> ballRadius = getValueFromArg(++index, args).toInt()
+                    "-tableDiameter"   -> baseTableDiameter = getValueFromArg(++index, args).toInt()
+                    "-batchTracks"     -> batchTracks.addAll(getValueFromArg(++index, args).split(","))
+                    "-deltaTime"       -> baseDeltaTime = getValueFromArg(++index, args).toDouble() / 10.0
+                    else               -> {
                         println("Unknown option " + args[index])
                         return false
                     }
@@ -191,6 +199,9 @@ class Settings {
         println("ext = $fileExtension")
         println("isHeadless = $isHeadless")
         println("wait = $waitForSpaceBar")
+        println("quitOnClose = $quitOnClose")
+        println("saveImage = $saveImage")
+        println("ignoreRho = $ignoreRho")
 
     }
 
@@ -216,6 +227,4 @@ class Settings {
         val encodeToString = json.encodeToString(Pair(frameLocation!!.x, frameLocation!!.y))
         preferences.put(PREFERENCES_KEY, encodeToString)
     }
-
-
 }

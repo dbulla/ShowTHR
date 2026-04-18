@@ -1,7 +1,5 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
-import com.nurflugel.showthr.Settings
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

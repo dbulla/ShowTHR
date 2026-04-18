@@ -1,34 +1,33 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.ImageFrame
-import com.nurflugel.showthr.RhoTheta
-import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateCornerXY
 import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
+
 /**
  * A simulation of loose sand on a table and being displaced by a ball.
  */
 class SandSimulation(val settings: Settings) {
-    // note that we size the table larger than specified - todo - subtract padding from image size
     private val sandGrid = Array(settings.baseTableDiameter) { DoubleArray(settings.baseTableDiameter) } // 2D array for sand density
     val ball = Ball("Ball_1", settings.ballRadius, settings)
     val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball
     private var imageFrame: ImageFrame? = null
-    var bufferedImage: BufferedImage
+    lateinit var bufferedImage: BufferedImage
     val ballRelaxedMargin = (ball.radius * settings.RELAX_MARGIN).toInt()
     val ball2RelaxedMargin = (ball2.radius * settings.RELAX_MARGIN).toInt()
 
-    init {
+    fun initialize() {
         val rhoTheta = RhoTheta(0.0, 0.0)
         ball.setPositionRhoTheta(rhoTheta)
         if (settings.isTantalus) {
@@ -37,7 +36,13 @@ class SandSimulation(val settings: Settings) {
         }
 
         initializeSandGrid(settings.initialSandDepth)
-        val backgroundImageFile = File(settings.backgroundImageName)
+        val backgroundImageFile = this::class.java.classLoader.getResourceAsStream(settings.backgroundImageName)?.let { it: InputStream ->
+            FileOutputStream("temp.png").use { outputStream ->
+                it.transferTo(outputStream)
+            }
+            File("temp.png")
+        }
+                                  ?: File(settings.backgroundImageName)
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
@@ -123,8 +128,9 @@ class SandSimulation(val settings: Settings) {
         }
         /// set update based on ball1 rho - if small (<.05), set update to 1/10 it's normal value
         settings.deltaTime = when {
+            settings.ignoreRho -> settings.baseDeltaTime
             settings.isTantalus && rhoTheta.rho < .1 -> settings.baseDeltaTime / 20.0
-            else               -> settings.baseDeltaTime
+            else                                     -> settings.baseDeltaTime
         }
         setTarget(rhoTheta, ball2RhoTheta)
         var count = 0

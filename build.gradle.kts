@@ -52,9 +52,9 @@ java {
 }
 
 application {
-    mainClass = "com.marginallyclever.showthr.ShowTHR"
+    mainClass = "com.nurflugel.showthr.ShowTHR"
     group = "com.nurflugel"
-    version = "1.0.0"
+    version = "1.1.1-SNAPSHOT"
 }
 
 tasks.named<Test>("test") {

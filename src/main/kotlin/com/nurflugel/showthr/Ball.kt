@@ -1,11 +1,9 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Utilities.Companion.calculateRho
 import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
-import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateTheta
 import javax.vecmath.Vector2d
 

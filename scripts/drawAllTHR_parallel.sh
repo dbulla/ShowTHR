@@ -9,7 +9,7 @@ directory="$1"
 extension=".thr"
 
 # Command to execute on each file
-command="java -jar ./build/libs/ShowTHR-all.jar"
+command="java -jar ./build/libs/ShowTHR-*-all.jar"
 
 #set -x
 MAX_CONCURRENT_JOBS=5

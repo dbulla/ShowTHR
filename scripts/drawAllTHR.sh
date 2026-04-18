@@ -7,7 +7,7 @@ directory="$1"
 extension=".thr"
 
 # Command to execute on each file
-command="java -jar ./build/libs/ShowTHR-all.jar"
+command="java -jar ./build/libs/ShowTHR-*-all.jar"
 
 #set -x
 
@@ -18,8 +18,8 @@ for file in "$directory"/*"$extension"; do
     # Check if the file is a regular file
     if [ -f "$file" ]; then
         # Execute the command on the file
-        $command -i "$file" -tableDiameter 1500 -skip 20 -quit
-        $command -i "$file" -tableDiameter 1500 -skip 20 -quit -tantalus
+        $command -i "$file" -tableDiameter 1000 -skip 20 -quit
+        $command -i "$file" -tableDiameter 1000 -skip 20 -quit -tantalus
 
         # display the image when it's done
 #        open "${file/.thr/.png}"
