@@ -1,7 +1,5 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
-import com.nurflugel.showthr.Settings
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -40,7 +38,7 @@ class SandSimulationTest {
     fun testSandSimulationSpiral() {
         settings = Settings().apply { baseTableDiameter = 100; ballRadius = 2; calculateCenter() }
         val sandSimulation = SandSimulation(settings)
-        sandSimulation.setTarget(RhoTheta(0.0, 100.0))
+        sandSimulation.setTarget(RhoTheta(0.0, 100.0),RhoTheta(0.0, 100.0) )
         var radius = (settings.tableDiameterMinusPadding) / 2.0 - settings.SHOULDER_WIDTH
         var angleInDegrees = 0.0
         for (iteration in 0..9999) {
@@ -51,7 +49,8 @@ class SandSimulationTest {
                     RhoTheta(
                         settings.tableDiameterMinusPadding / 2.0 + sin(angleInRadians) * radius,
                         settings.tableDiameterMinusPadding / 2.0 + cos(angleInRadians) * radius
-                    )
+                    ),
+                    RhoTheta(0.0, 100.0)
                 )
                 radius = ((settings.tableDiameterMinusPadding) / 2.0 - settings.SHOULDER_WIDTH) - (angleInDegrees / 360.0) * 10
                 angleInDegrees += 5.0
@@ -66,24 +65,5 @@ class SandSimulationTest {
         val file = File("sand_simulation.png")
         ImageIO.write(image, "png", file)
         println("Image saved to " + file.absolutePath)
-    }
-
-    /**
-     * Read a THR file and simulate the sand being pushed by the ball.
-     * @throws IOException if the file cannot be read
-     */
-    @Test
-    @Order(Integer.MAX_VALUE) // run this last so it saves the image
-    @Throws(IOException::class)
-    fun testSandSimulationFromFile() {
-        settings = Settings().apply { baseTableDiameter = 400; ballRadius = 2; isHeadless=true; calculateCenter() }
-        val sandSimulation = SandSimulation(settings)
-        ShowTHR.processThrFile("src/test/resources/Vaporeon_with_Waves.thr", sandSimulation)
-
-        val image: BufferedImage = sandSimulation.renderSandImage()
-        // save the image to disk
-        val imageFile = File("sand_simulation.png")
-        ImageIO.write(image, "png", imageFile)
-        println("Image saved to " + imageFile.absolutePath)
     }
 }

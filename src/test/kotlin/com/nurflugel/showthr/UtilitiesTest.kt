@@ -1,12 +1,10 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Utilities.Companion.calculateRho
 import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
 import com.nurflugel.showthr.Utilities.Companion.getValueFromArg
-import com.nurflugel.showthr.Settings
 import java.lang.Math.PI
 import kotlin.test.Test
 import kotlin.test.assertEquals

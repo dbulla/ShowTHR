@@ -17,7 +17,7 @@ rm -rf $targetDir
 mkdir $sourceDir
 mkdir $targetDir
 echo "Running rsync to fetch fresh images from iMac"
-rsync -v --ignore-existing /Volumes/douglas_bullard/dev/github/douglasBullard/tracks6/*.png $sourceDir/
+rsync -v --ignore-existing ~/dev/github/douglasBullard/tracks6/*.png $sourceDir/
 
 echo "Copying & renaming images ./gradlew runRenamer --args='-sourceDir $sourceDir -targetDir $targetDir'"
 

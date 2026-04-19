@@ -1,7 +1,6 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
-import com.nurflugel.showthr.Settings
+import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -34,10 +33,10 @@ import kotlin.time.ExperimentalTime
  * The simulation attempts to push some sand away from the ball and then
  */
 object ShowTHR {
-    val settings = Settings()
 
     @JvmStatic
     fun main(args: Array<String>) {
+        val settings = Settings()
         println("ShowTHR")
 
         if (settings.parseInputs(args) && settings.isOutputFileIsSupported()) {
@@ -47,39 +46,34 @@ object ShowTHR {
             val start = Instant.now()
 
             val sandSimulation = SandSimulation(settings)
-            //            if (settings.batchTracks.isEmpty() && settings.inputFilename != null) {
-            //                settings.batchTracks.add(settings.inputFilename!!)
-            //            }
+            sandSimulation.initialize()
             settings.batchTracks.forEach {
                 try {
-                    //                    val oldBallsSetting = settings.useTwoBalls
-                    //                    val oldReversedSetting = settings.isReversed
-                    //                    if (it == "clean.thr") {
-                    //                        settings.useTwoBalls = true
-                    //                        settings.isReversed = true
-                    //                    }
-                    processThrFile(it, sandSimulation)
-                    //                    settings.useTwoBalls = oldBallsSetting
-                    //                    settings.isReversed = oldReversedSetting
+                    processThrFile(it, sandSimulation, settings)
                 } catch (e: IOException) {
                     println("Error reading file " + settings.inputFilename + ": " + e.message)
                 }
-
-                try { // save the image to disk
-                    val file = File(settings.outputFilename!!)
-                    ImageIO.write(sandSimulation.bufferedImage, settings.fileExtension, file)
-                    println("Image saved to " + file.absolutePath)
-                } catch (e: IOException) {
-                    println("Error saving file " + settings.outputFilename + ": " + e.message)
+                if(settings.saveImage) {
+                    try { // save the image to disk
+                        val file = File(settings.outputFilename!!)
+                        ImageIO.write(sandSimulation.bufferedImage, settings.fileExtension, file)
+                        println("Image saved to " + file.absolutePath)
+                    } catch (e: IOException) {
+                        println("Error saving file " + settings.outputFilename + ": " + e.message)
+                    }
                 }
                 // Make the new background the image that was just generated
-                settings.backgroundImageName = settings.outputFilename!!
+                // instead, keep sand grid from previous rendering
+                // commenting out, as if we just don't re-initialize the sand grid, it'll keep the previous sand
+                //  settings.backgroundImageName = settings.outputFilename!!
             }
 
             // get end time
             val end = Instant.now()
             println("Done!  Time taken: " + Duration.between(start, end).seconds + " s")
-            if (settings.shouldQuitWhenDone) exitProcess(0)
+            if (settings.shouldQuitWhenDone && settings.quitOnClose) {
+                exitProcess(0)
+            }
         }
         else {
             showHelp()
@@ -94,50 +88,52 @@ object ShowTHR {
      */
     @OptIn(ExperimentalTime::class)
     @Throws(IOException::class)
-    fun processThrFile(filename: String, sandSimulation: SandSimulation) {
+    fun processThrFile(filename: String, sandSimulation: SandSimulation, settings: Settings) {
         val stringBuilder = StringBuilder()
 
         var previousPercentage = 0.0
         val startTime = Clock.System.now()
 
-        val expandedSequence = extractRhoThetaPairs(filename)
+        val expandedSequence = extractRhoThetaPairs(filename, settings)
         if (expandedSequence.isEmpty()) return
         val numLines = expandedSequence.size
 
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         val firstTheta = expandedSequence.first().first
         val firstRho = expandedSequence.first().second
-        sandSimulation.setTarget(RhoTheta(firstRho, firstTheta))
+        val firstRhoTheta = RhoTheta(firstRho, firstTheta)
+        val ball2RhoTheta = getBall2RhoTheta(firstRhoTheta)
+        sandSimulation.setTarget(firstRhoTheta, ball2RhoTheta)
 
         expandedSequence.forEachIndexed { index, it ->
             val rhoTheta = RhoTheta(it.second, it.first)
             sandSimulation.moveToNextRhoTheta(index, rhoTheta)
-            previousPercentage = outputStatus(stringBuilder, filename, index, numLines, previousPercentage, startTime)
+            previousPercentage = outputStatus(stringBuilder, filename, index, numLines, previousPercentage, startTime, settings)
         }
+        sandSimulation.renderSandImage()
     }
 
-    private fun extractRhoThetaPairs(filename: String): MutableList<Pair<Double, Double>> {
+    private fun extractRhoThetaPairs(filename: String, settings: Settings): MutableList<Pair<Double, Double>> {
         val regex = "\\s+".toRegex()
         val trackLines: MutableList<String> = when {
-            settings.isGenerateCleanBackdrop -> createCleaningTrack()
+            settings.isGenerateCleanBackdrop -> createCleaningTrack(settings)
             else                             -> {
                 BufferedReader(InputStreamReader(FileInputStream(File(filename)))).use { reader ->
                     val lineSequence = reader.lineSequence().toMutableList()
-                    if (lineSequence.isEmpty()) exitProcess(0)
+                    if (lineSequence.isEmpty()) TODO("need to show a dialog for this error") // todo throw an error
                     lineSequence
                 }
             }
         }
         var sequence: List<Pair<Double, Double>> = parseSequence(trackLines, regex)
         if (settings.isReversed) sequence = sequence.reversed().toMutableList()
-        val expandedSequence = expandSequence(sequence)
+        val expandedSequence = expandSequence(sequence, settings)
         println("initial size: ${sequence.size}, expandedSequence size = ${expandedSequence.size}")
         return expandedSequence
     }
 
     /**
-     *  Go through the original file and clean it up, then produce a nice list, consisting of pairs of theta and rho.
-     *
+     *  Go through the original file and clean it up, then produce a nice list, consisting of pairs of thetas and rhos.
      */
     private fun parseSequence(lines: List<String>, regex: Regex): MutableList<Pair<Double, Double>> {
         val sequence: MutableList<Pair<Double, Double>> =
@@ -146,7 +142,7 @@ object ShowTHR {
                 .map {
                     val parts = it.replace(regex, " ").split(" ")
                     try {
-                        val theta = parts[0].toDouble()
+                        val theta = parts[0].toDouble() - PI/2.0 // adding 90 degrees so images appear upright
                         val rho = parts[1].toDouble()
                         Pair(theta, rho)
                     } catch (e: Exception) {
@@ -160,7 +156,7 @@ object ShowTHR {
     }
 
     // if desired, add a "clean" before the main track
-    fun createCleaningTrack(): MutableList<String> {
+    fun createCleaningTrack(settings: Settings): MutableList<String> {
         val cleaningTrack = mutableListOf<String>()
         cleaningTrack.add("0.0 0.0")
         val turnsInRadians = settings.NUMBER_OF_TURNS_TO_CLEAN * PI
@@ -176,7 +172,7 @@ object ShowTHR {
      * The problem is that the app will draw straight lines in x,y space between two points - and when you only have a change in theta, it draws a straight line instead of
      * the curve that it should be.  So, for any case where theta changes but rho does not, we need to expand the sequence with many intermediate points to fake the curve.
      */
-    fun expandSequence(sequence: List<Pair<Double, Double>>): MutableList<Pair<Double, Double>> {
+    fun expandSequence(sequence: List<Pair<Double, Double>>, settings: Settings): MutableList<Pair<Double, Double>> {
         if (settings.shouldExpandSequences) {
             val newSequence = mutableListOf<Pair<Double, Double>>()
             for (i in 0..<sequence.size - 1) {
@@ -225,6 +221,7 @@ object ShowTHR {
         numLines: Int,
         previousPercentageThreshold: Double,
         startTime: kotlin.time.Instant,
+        settings: Settings,
     ): Double {
         val percentageComplete = 100.0 * index / numLines
         val shouldPrint = when {
@@ -243,6 +240,7 @@ object ShowTHR {
                     val timeRemainingMs = (numLines * durationMs / index) - durationMs
                     Duration.ofMillis(timeRemainingMs).toString()
                 }
+
                 else      -> "?"
             }
             stringBuilder.append("$shortFilename    $percent    Duration: $duration    timeRemaining: $timeRemaining")
@@ -270,25 +268,26 @@ Usage: ./gradlew run --args="-i inputFile.thr [options]"
 
 Optional flags with arguments:
     
-    -o              outputFilename        If present, the output file will be written to this file
+    -o              outputFilename        If present, the output file will be written to this file.
     -background     backgroundImageName   Use the supplied image as the background image.  Will be blank if it doesn't exist.  Uses "clean.png" if not supplied.
     -depth          initialDepth          Initial depth of the sand.  Default is 2.  Ignored if you have a background image.
     -deltaTime      deltaTime             Determines how fine the time slice is - the smaller the number, the slower (but smoother) the animation.  Default is 2.
-    -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues
-    -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier)
-    -ballRadius     ballSize              Sets the ball size.  Default is ${settings.ballRadius}.
-    -tableDiameter  table size            Sets the diameter of the sand table.  Default is ${settings.baseTableDiameter}.
+    -expand         ExpandSequences       If true (default), will preprocess the .thr file to deal with polar->x,y conversion issues.
+    -skip           imageSkipCount        How many lines are skipped before the image is refreshed - 1 is slowest, higher is faster (but jerkier).
+    -ballRadius     ballSize              Sets the ball size.  Default is 5.
+    -tableDiameter  table size            Sets the diameter of the sand table.  Default is the screen height.
     -batchTracks    batch track list      List of file names to process - each will draw on top of the previous one.
 
 Optional flags without arguments:
     -clean            If present, will generate a "clean_SIZE.png" image to be used as a background image.
     -hideBall1        If present, the first ball will not be drawn.
-    -quit             If present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default)
+    -quit             If present, the program will quit after it has finished running.  Else, it will stop with the image displayed (default).
     -reversed         If present, the .thr file will be read in reversed order.
-    -tantalus         Tantalus mode - draw with two balls
+    -tantalus         Tantalus mode - draw with two balls.
     -grey             Use a grey background instead of a "clean" track background. 
-    -headless"        Generate the image w/o any GUI
-    -hideBall1"       Use two balls, but don't show the first ball.
+    -headless         Generate the image w/o any GUI.
+    -hideBall1        Use two balls, but don't show the first ball.
+    -wait             Wait for the space bar to be pressed before starting the animation.  Useful for screen recording.
 
 
     

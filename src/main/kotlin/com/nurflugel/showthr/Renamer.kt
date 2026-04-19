@@ -3,7 +3,10 @@ package com.nurflugel.showthr
 import com.nurflugel.showthr.Utilities.Companion.getValueFromArg
 import java.io.File
 
-/** This class will rename all the files in a directory to have a number prefix.
+/**
+ * This class will rename all the files in a directory to have a number prefix.
+ *
+ * Why is this needed?  It turns out, OS X doesn't sort files by numbers in the name - i.e., what comes first, name_10.png or name_099.png?
  *
  * Any file that starts with "clock" will be included.  Anything else will be skipped.  The index of the "clock*" file
  * in the sorted list of "clock*" files, and the images are copied to a new directory as "images_NNNN.png".
@@ -19,6 +22,7 @@ object Renamer {
 
         if (args.isEmpty()) {
             println("Problem parsing arguments ")
+            println("Usage: java -jar Renamer.jar -sourceDir <source directory> -targetDir <target directory>")
             return
         }
         try {
