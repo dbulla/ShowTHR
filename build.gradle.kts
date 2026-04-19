@@ -49,6 +49,9 @@ java {
     }
 }
 
+group = "com.nurflugel"
+version = "1.0.0"
+
 application {
     mainClass = "com.marginallyclever.showthr.ShowTHR"
     group = "com.nurflugel"
