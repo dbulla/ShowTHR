@@ -1,11 +1,9 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.RhoTheta
 import com.nurflugel.showthr.Utilities.Companion.calculateRho
 import com.nurflugel.showthr.Utilities.Companion.calculateThetaInDegrees
 import com.nurflugel.showthr.Utilities.Companion.calculateX
 import com.nurflugel.showthr.Utilities.Companion.calculateY
-import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateTheta
 import javax.vecmath.Vector2d
 
@@ -35,7 +33,7 @@ class Ball(val name: String, val radius: Int, val settings: Settings) {
         val diff = Vector2d(target)
         diff.sub(positionXy)
         val lengthSquared = diff.lengthSquared()
-        atTarget = lengthSquared < 0.1
+        atTarget = lengthSquared < 0.001
         // we need this for the relaxation step
         startPosition = positionXy
     }

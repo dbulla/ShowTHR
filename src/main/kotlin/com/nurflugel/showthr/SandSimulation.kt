@@ -1,34 +1,33 @@
-package com.marginallyclever.showthr
+package com.nurflugel.showthr
 
-import com.nurflugel.showthr.ImageFrame
-import com.nurflugel.showthr.RhoTheta
-import com.nurflugel.showthr.Settings
 import com.nurflugel.showthr.Utilities.Companion.calculateCornerXY
 import com.nurflugel.showthr.Utilities.Companion.getBall2RhoTheta
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
+
 /**
  * A simulation of loose sand on a table and being displaced by a ball.
  */
 class SandSimulation(val settings: Settings) {
-    // note that we size the table larger than specified - todo - subtract padding from image size
     private val sandGrid = Array(settings.baseTableDiameter) { DoubleArray(settings.baseTableDiameter) } // 2D array for sand density
     val ball = Ball("Ball_1", settings.ballRadius, settings)
     val ball2 = Ball("Ball_2", settings.ballRadius - 1, settings) // optional second ball
     private var imageFrame: ImageFrame? = null
-    var bufferedImage: BufferedImage
+    lateinit var bufferedImage: BufferedImage
     val ballRelaxedMargin = (ball.radius * settings.RELAX_MARGIN).toInt()
     val ball2RelaxedMargin = (ball2.radius * settings.RELAX_MARGIN).toInt()
 
-    init {
+    fun initialize() {
         val rhoTheta = RhoTheta(0.0, 0.0)
         ball.setPositionRhoTheta(rhoTheta)
         if (settings.isTantalus) {
@@ -37,16 +36,24 @@ class SandSimulation(val settings: Settings) {
         }
 
         initializeSandGrid(settings.initialSandDepth)
-        val backgroundImageFile = File(settings.backgroundImageName)
+        val backgroundImageFile = this::class.java.classLoader.getResourceAsStream(settings.backgroundImageName)?.let { it: InputStream ->
+            FileOutputStream("temp.png").use { outputStream ->
+                it.transferTo(outputStream)
+            }
+            File("temp.png")
+        }
+                                  ?: File(settings.backgroundImageName)
         val isBackgroundImagePresent = backgroundImageFile.exists()
         bufferedImage = when {
             isBackgroundImagePresent -> readInCleanedImage(backgroundImageFile)
             else                     -> BufferedImage(settings.baseTableDiameter, settings.baseTableDiameter, TYPE_INT_ARGB)
         }
-        if (!settings.isHeadless) imageFrame = ImageFrame(bufferedImage, settings)
+        if (!settings.isHeadless) {
+            imageFrame = ImageFrame(bufferedImage, settings)
+        }
     }
 
-    /** Initialize sand grid to uniform density */
+    /** Initialize sand grid to uniform height */
     private fun initializeSandGrid(initialSandDepth: Double) {
         (0..<settings.baseTableDiameter).forEach { i ->
             (0..<settings.baseTableDiameter).forEach { j ->
@@ -78,24 +85,21 @@ class SandSimulation(val settings: Settings) {
         return backgroundImage
     }
 
-    fun setTarget(rhoTheta: RhoTheta) {
+    fun setTarget(rhoTheta: RhoTheta, ball2RhoTheta: RhoTheta) {
         ball.setTargetRhoTheta(rhoTheta)
         if (settings.isTantalus) {
-            val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
             ball2.setTargetRhoTheta(ball2RhoTheta)
         }
     }
 
-    fun setInitialBallPosition(rhoTheta: RhoTheta) {
+    fun setInitialBallPosition(rhoTheta: RhoTheta, ball2RhoTheta: RhoTheta) {
         ball.setPositionRhoTheta(rhoTheta)
         ball.setTargetRhoTheta(rhoTheta)
         if (settings.isTantalus) {
-            val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
             ball2.setPositionRhoTheta(ball2RhoTheta)
             ball2.setTargetRhoTheta(ball2RhoTheta)
         }
     }
-
 
     fun update() {
         val rhoTheta = ball.updatePosition()
@@ -106,8 +110,8 @@ class SandSimulation(val settings: Settings) {
             relaxSand(ball, ballRelaxedMargin)
         }
         if (settings.isTantalus) {
-            // force ball 2 to mirror ball 1
-            ball2.setPositionRhoTheta(getBall2RhoTheta(rhoTheta))
+            val newBall2RhoTheta = getBall2RhoTheta(rhoTheta)
+            ball2.setPositionRhoTheta(newBall2RhoTheta)
             makeBallPushSand(ball2)
             relaxSand(ball2, ball2RelaxedMargin)
         }
@@ -117,11 +121,18 @@ class SandSimulation(val settings: Settings) {
         index: Int,
         rhoTheta: RhoTheta,
     ) {
+        val ball2RhoTheta = getBall2RhoTheta(rhoTheta)
         // set the ball position to the first point in the sequence, instead of 0 - we might start at the outside (1) instead of the inside (0)
         if (index == 0) {
-            setInitialBallPosition(rhoTheta)
+            setInitialBallPosition(rhoTheta, ball2RhoTheta)
         }
-        setTarget(rhoTheta)
+        /// set update based on ball1 rho - if small (<.05), set update to 1/10 it's normal value
+        settings.deltaTime = when {
+            settings.ignoreRho -> settings.baseDeltaTime
+            settings.isTantalus && rhoTheta.rho < .1 -> settings.baseDeltaTime / 20.0
+            else                                     -> settings.baseDeltaTime
+        }
+        setTarget(rhoTheta, ball2RhoTheta)
         var count = 0
         while (!ballAtTarget(ball)) {
             update()
@@ -284,9 +295,9 @@ class SandSimulation(val settings: Settings) {
     private fun encode32bit(greyscale: Int): Int {
         var newGreyscale = greyscale
         newGreyscale = newGreyscale and 0xff
-        val red: Int = min((newGreyscale * settings.redConversion).toInt(),255)
-        val green: Int = min((newGreyscale * settings.greenConversion).toInt(),255)
-        val blue:  Int = min((newGreyscale * settings.blueConversion).toInt(),255)
+        val red: Int = min((newGreyscale * settings.redConversion).toInt(), 255)
+        val green: Int = min((newGreyscale * settings.greenConversion).toInt(), 255)
+        val blue: Int = min((newGreyscale * settings.blueConversion).toInt(), 255)
         val resultRgb = when {
             settings.useGreyBackground -> Color(newGreyscale, newGreyscale, newGreyscale).rgb
             else                       -> Color(red, green, blue).rgb
