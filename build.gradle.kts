@@ -4,8 +4,6 @@ import org.gradle.internal.jvm.Jvm
 //val kotlinTestUnit = "1.9.10"
 
 plugins {
-    // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-//    alias(libs.plugins.kotlin.jvm)
     kotlin("jvm") version "2.4.0-Beta1"
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -54,7 +52,7 @@ java {
 application {
     mainClass = "com.nurflugel.showthr.ShowTHR"
     group = "com.nurflugel"
-    version = "1.1.1-SNAPSHOT"
+    version = "1.1.1"
 }
 
 tasks.named<Test>("test") {

@@ -34,7 +34,6 @@ import kotlin.time.ExperimentalTime
  */
 object ShowTHR {
 
-
     @JvmStatic
     fun main(args: Array<String>) {
         val settings = Settings()
@@ -64,7 +63,9 @@ object ShowTHR {
                     }
                 }
                 // Make the new background the image that was just generated
-                settings.backgroundImageName = settings.outputFilename!!
+                // instead, keep sand grid from previous rendering
+                // commenting out, as if we just don't re-initialize the sand grid, it'll keep the previous sand
+                //  settings.backgroundImageName = settings.outputFilename!!
             }
 
             // get end time
@@ -141,7 +142,7 @@ object ShowTHR {
                 .map {
                     val parts = it.replace(regex, " ").split(" ")
                     try {
-                        val theta = parts[0].toDouble()
+                        val theta = parts[0].toDouble() - PI/2.0 // adding 90 degrees so images appear upright
                         val rho = parts[1].toDouble()
                         Pair(theta, rho)
                     } catch (e: Exception) {

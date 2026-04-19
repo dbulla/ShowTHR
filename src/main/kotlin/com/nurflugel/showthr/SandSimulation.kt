@@ -53,7 +53,7 @@ class SandSimulation(val settings: Settings) {
         }
     }
 
-    /** Initialize sand grid to uniform density */
+    /** Initialize sand grid to uniform height */
     private fun initializeSandGrid(initialSandDepth: Double) {
         (0..<settings.baseTableDiameter).forEach { i ->
             (0..<settings.baseTableDiameter).forEach { j ->
