@@ -32,13 +32,14 @@ class ImageFrame(bufferedImage: BufferedImage, settings: Settings) : JFrame() {
             val scrollPane = JScrollPane(imagePanel)
             mainPanel.add(scrollPane, CENTER)
             add(mainPanel, CENTER)
+            title = settings.dialogTitle
             imagePanel.updateImage(bufferedImage)
             imagePanel.preferredSize = Dimension(settings.baseTableDiameter, settings.baseTableDiameter)
             imagePanel.size = imagePanel.preferredSize
             defaultCloseOperation = DISPOSE_ON_CLOSE
-//            defaultCloseOperation = EXIT_ON_CLOSE
-//            defaultCloseOperation = HIDE_ON_CLOSE
-//            defaultCloseOperation = DO_NOTHING_ON_CLOSE
+            //            defaultCloseOperation = EXIT_ON_CLOSE
+            //            defaultCloseOperation = HIDE_ON_CLOSE
+            //            defaultCloseOperation = DO_NOTHING_ON_CLOSE
             pack()
 
             if (settings.frameLocation == null) { // Never saved, or else they used the -center flag
