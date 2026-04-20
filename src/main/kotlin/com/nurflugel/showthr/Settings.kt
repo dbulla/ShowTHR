@@ -14,8 +14,6 @@ import kotlin.text.isNotEmpty
 class Settings {
 
 
-
-
     @Suppress("PrivatePropertyName")
     private val PREFERENCES_KEY = "showThr"
     private val preferences: Preferences = Preferences.userNodeForPackage(Settings::class.java)
@@ -36,7 +34,9 @@ class Settings {
     var isTantalus = false
     var quitOnClose = true
     var saveImage = true
-    var ignoreRho=false
+    var ignoreRho = false
+    var dialogTitle: String = ""
+
     /**
      * At the perimeter of the table, the ball can push the sand past the 1.0 rho level - we want to see
      * that (it looks odd if it's clipped) - so the table is actually a little larger than the rho of 1.0 - by SHOULDER_WIDTH pixels.
@@ -114,6 +114,7 @@ class Settings {
 
                     "-center"          -> frameLocation = null
                     "-depth"           -> initialSandDepth = getValueFromArg(++index, args).toDouble()
+                    "-dialogTitle"     -> dialogTitle = getValueFromArg(++index, args)
                     "-expand"          -> shouldExpandSequences = getValueFromArg(++index, args).toBoolean()
                     "-headless"        -> isHeadless = true
                     "-hideBall1"       -> {
@@ -121,7 +122,7 @@ class Settings {
                         isTantalus = true
                     }
 
-                    "-ignoreRho"   -> ignoreRho = true
+                    "-ignoreRho"       -> ignoreRho = true
                     "-dontSaveImage"   -> saveImage = false
                     "-dontQuitOnClose" -> quitOnClose = false
                     "-wait"            -> waitForSpaceBar = true
@@ -202,6 +203,7 @@ class Settings {
         println("quitOnClose = $quitOnClose")
         println("saveImage = $saveImage")
         println("ignoreRho = $ignoreRho")
+        println("dialogTitle = $dialogTitle")
 
     }
 

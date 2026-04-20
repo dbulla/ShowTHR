@@ -55,7 +55,7 @@ version = "1.0.0"
 application {
     mainClass = "com.nurflugel.showthr.ShowTHR"
     group = "com.nurflugel"
-    version = "1.1.1"
+    version = "1.1.2"
 }
 
 tasks.named<Test>("test") {
