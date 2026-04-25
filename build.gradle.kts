@@ -4,13 +4,13 @@ import org.gradle.internal.jvm.Jvm
 //val kotlinTestUnit = "1.9.10"
 
 plugins {
-    kotlin("jvm") version "2.4.0-Beta1"
+    kotlin("jvm") version "2.4.0-Beta2"
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     id( "com.gradleup.shadow") version "9.4.1"
-    id("com.github.ben-manes.versions") version "0.53.0"
+    id("com.github.ben-manes.versions") version "0.54.0"
     id("com.dorongold.task-tree") version "4.0.1"
-    kotlin("plugin.serialization") version "2.3.20"
+    kotlin("plugin.serialization") version "2.4.0-Beta2"
 //    id("io.ktor.plugin") version "3.3.1"
 }
 
@@ -91,7 +91,8 @@ tasks.register<JavaExec>("runServer") {
 
 println("""
              ========================================================================================================
-             Welcome to Gradle version:          ${project.gradle.gradleVersion}
+             Welcome to:                         ${project.name}
+             Gradle version:                     ${project.gradle.gradleVersion}
              Java version:                       ${Jvm.current()}
              Java home:                          ${Jvm.current().javaHome}
              Gradle user directory is set to:    ${project.gradle.gradleUserHomeDir}
