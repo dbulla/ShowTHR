@@ -3,12 +3,12 @@ package com.nurflugel.showthr
 import com.nurflugel.showthr.Utilities.Companion.getValueFromArg
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.awt.Point
 import java.awt.Toolkit
 import java.util.prefs.Preferences
 import javax.imageio.ImageIO
-import kotlin.text.isNotEmpty
 
 @Suppress("PropertyName")
 class Settings {
@@ -215,8 +215,14 @@ class Settings {
         val location = when {
             jsonString.isNotEmpty() -> {
                 val element: JsonElement = json.parseToJsonElement(jsonString)
-                val location = json.decodeFromJsonElement<Pair<Int, Int>>(element)
-                Point(location.first, location.second)
+                // all this nonsense below deals with the JavaFX branch stores the point as a float, whereas the Swing branch uses an int - so parse to an int
+                var toString = element.jsonObject["first"]?.jsonPrimitive.toString()
+                val x = toString.toFloatOrNull()?.toInt()
+                        ?: toString.toInt()
+                toString = element.jsonObject["second"]?.jsonPrimitive.toString()
+                val y = toString.toFloatOrNull()?.toInt()
+                        ?: toString.toInt()
+                Point(x, y)
             }
 
             else                    -> null
