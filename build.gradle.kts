@@ -49,13 +49,10 @@ java {
     }
 }
 
-group = "com.nurflugel"
-version = "1.0.0"
-
 application {
     mainClass = "com.nurflugel.showthr.ShowTHR"
     group = "com.nurflugel"
-    version = "1.1.2"
+    version = "1.1.3"
 }
 
 tasks.named<Test>("test") {

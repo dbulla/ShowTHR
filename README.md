@@ -24,7 +24,7 @@ Get the [Release](https://github.com/dbulla/ShowTHR/releases) version, or build 
 
 Then, you can run it from the command line :
 
-```java -jar build/libs/ShowTHR-all.jar -i <inputFile.thr> [options]``` or ```java -jar build/libs/ShowTHR-all.jar -i <inputFile.thr> [options]```
+```java -jar build/libs/ShowTHR-XXX-all.jar -i <inputFile.thr> [options]``` or ```java -jar build/libs/ShowTHR-all.jar -i <inputFile.thr> [options]```
 
 Better yet, just run it via Gradle - just wrap the args like so: 
 
